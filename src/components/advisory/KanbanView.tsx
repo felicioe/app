@@ -19,12 +19,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ cliente }) => {
   }, [cliente]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (activeTimerId !== null) {
-      interval = setInterval(() => {
-        setSecondsElapsed(prev => prev + 1);
-      }, 1000);
-    }
+    if (activeTimerId === null) return;
+    const interval = window.setInterval(() => {
+      setSecondsElapsed(prev => prev + 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, [activeTimerId]);
 
