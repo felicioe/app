@@ -9,6 +9,15 @@
     "preview": "vite preview --host"
   },
   "devDependencies": {
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
     "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.61.0",
+    "tailwind-merge": "^3.7.0"
   }
 }

@@ -1,0 +1,8 @@
+Options -Indexes
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+RewriteEngine On
+RewriteRule ^flow/alcadas/aprovar/?$ flow/alcadas.php [L,QSA]
+RewriteRule ^(config|helpers|services|sql|tests|storage)(/|$) - [F,L]
+<FilesMatch "^(bootstrap\.php|.*\.(md|json|lock|env))$">
+Require all denied
+</FilesMatch>
