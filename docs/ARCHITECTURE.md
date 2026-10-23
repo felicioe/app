@@ -17,10 +17,10 @@ navegador
   -> SPA React/Vite (arquivos compilados)
   -> /api/*.php
   -> PHP 8.x + PDO
-  -> banco MySQL compartilhado pelo SiteGlobal e pelo Workspace, com separação lógica
+  -> banco MySQL exclusivo do Workspace
 ```
 
-O React não acessa o MySQL diretamente. Toda autenticação, autorização, isolamento por `cliente_id`, upload, aprovação, importação e faturamento passam pela API PHP. O SiteGlobal pode usar somente dados institucionais autorizados; o Workspace concentra Advisory e BPO/Flow.
+O React não acessa o MySQL diretamente. Toda autenticação, autorização, isolamento por `cliente_id`, upload, aprovação, importação e faturamento passam pela API PHP. O banco do Workspace deve ser separado do SiteGlobal, do Krieger e de qualquer outra aplicação. Essa separação evita mistura de dados, credenciais, migrações e rotinas de manutenção.
 
 ## Contrato de publicação
 
@@ -51,6 +51,6 @@ Segredos nunca entram no GitHub, no frontend ou em arquivos públicos.
 - O build React não contém página institucional antiga.
 - A SPA carregada em `app.therafinancial.com.br` consome a API pela mesma origem.
 - `POST /api/auth/login.php` retorna JSON padronizado.
-- O banco do Workspace é separado do Krieger.
+- O banco do Workspace é separado do Krieger e do SiteGlobal.
 - O domínio principal continua servindo somente o SiteGlobal.
 - O frontend do Lovable e a API PHP têm documentação de integração atualizada.
