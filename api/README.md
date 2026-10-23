@@ -35,6 +35,7 @@ Respostas: `{status,data,error,timestamp}`; `status` é `success` ou `error`. Au
 - `GET/POST/PATCH advisory/kanban.php`: listar projetos/tarefas, criar tarefa e mover status (`pendente`, `em_andamento`, `concluida`). Apenas BPO altera.
 - `GET/POST advisory/despesas.php`: `{cliente_id,data,descricao,valor,reembolsavel}`. Valores monetários como string decimal com ponto.
 - `POST advisory/faturamento.php`: `{cliente_id,inicio,fim}`; exclusivo `bpo_adm`. `GET` lista faturas. Datas inclusivas. Valores calculados em centavos, arredondamento ao centavo após somar os minutos. Ciclo padrão do timesheet: mês calendário. Fechamentos sobrepostos são rejeitados; horas e despesas não podem ser lançadas em períodos encerrados.
+- `GET flow/cliente.php?cliente_id=1`: retorna somente o tenant autorizado pela sessão.
 - `GET flow/documentos.php`: `cliente_id`, filtros opcionais `inicio`, `fim` (vencimento), `status`.
 - `POST flow/documentos.php`: multipart `cliente_id,descricao,valor,vencimento,linha_digitavel?,chave_pix?,anexo`. PDF/JPEG/PNG/WebP até 10 MB, nome aleatório, download autenticado em `GET flow/anexo.php?cliente_id=1&documento_id=1`.
 - `GET flow/alcadas.php`: regras por cliente. `POST flow/alcadas.php` ou `/api/flow/alcadas/aprovar`: `{cliente_id,documento_id}`.
