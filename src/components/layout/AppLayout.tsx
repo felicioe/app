@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   LogOut
 } from 'lucide-react';
-import { CLIENTES_MOCK, Cliente } from '../../mock/mockData';
+import { Cliente } from '../../mock/mockData';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,6 +21,7 @@ interface AppLayoutProps {
   setActiveView: (view: string) => void;
   clienteSelecionado: Cliente;
   setClienteSelecionado: (cliente: Cliente) => void;
+  clientes: Cliente[];
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -31,6 +32,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   setActiveView,
   clienteSelecionado,
   setClienteSelecionado,
+  clientes,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -128,12 +130,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <select
                 value={clienteSelecionado.id}
                 onChange={(e) => {
-                  const c = CLIENTES_MOCK.find(item => item.id === Number(e.target.value));
+                  const c = clientes.find(item => item.id === Number(e.target.value));
                   if (c) setClienteSelecionado(c);
                 }}
                 className="w-full bg-slate-800 border border-slate-700 text-xs rounded-md py-1.5 pl-2 pr-7 text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none truncate"
               >
-                {CLIENTES_MOCK.map((c) => (
+                {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nomeFantasia}
                   </option>
