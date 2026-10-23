@@ -5,6 +5,7 @@ import { KanbanView } from './components/advisory/KanbanView';
 import { FlowView } from './components/flow/FlowView';
 import { CLIENTES_MOCK, Cliente } from './mock/mockData';
 import { authService } from './services/authService';
+import { adminService } from './services/adminService';
 import { ApiError, type Usuario } from './services/apiClient';
 
 type Module = 'workspace' | 'advisory';
@@ -21,11 +22,12 @@ function LoginPage({ module, onLogin }: { module: Module; onLogin: (user: Usuari
 
 export function App() {
   const module: Module | null = window.location.pathname.startsWith('/workspace') ? 'workspace' : window.location.pathname.startsWith('/advisory') ? 'advisory' : null;
-  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente>(CLIENTES_MOCK[0]); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
+  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [clientes, setClientes] = useState<Cliente[]>(CLIENTES_MOCK); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente>(CLIENTES_MOCK[0]); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
   useEffect(() => { if (module) authService.current().then(setUser).catch(() => setUser(null)).finally(() => setChecking(false)); }, [module]);
+  useEffect(() => { if (user?.perfil === 'bpo_adm') adminService.clientes().then(items => { if (items.length) { setClientes(items); setClienteSelecionado(items[0]); } }).catch(() => undefined); }, [user?.perfil]);
   if (!module) return <LandingPage />; if (checking) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>; if (!user) return <LoginPage module={module} onLogin={setUser} />;
   const activeModule = module === 'workspace' ? 'flow' : 'advisory';
-  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'workspace' ? <FlowView view={activeView} cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
+  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado} clientes={clientes}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'workspace' ? <FlowView view={activeView} cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
 }
 
 export default App;
