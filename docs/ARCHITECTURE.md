@@ -24,7 +24,7 @@ O React não acessa o MySQL diretamente. Toda autenticação, autorização, iso
 
 ## Contrato de publicação
 
-A raiz do deployment deve conter os arquivos gerados por `npm run build` e a pasta `api/`. A Hostinger deve apontar o site do subdomínio para a branch `main) depois que o PR de consolidação for aprovado.
+A raiz do deployment deve conter os arquivos gerados por `npm run build` e a pasta `api/`. A Hostinger deve apontar o site do subdomínio para a branch `main` depois que o PR de consolidação for aprovado.
 
 Variáveis obrigatórias no ambiente do servidor:
 
@@ -40,7 +40,7 @@ Segredos nunca entram no GitHub, no frontend ou em arquivos públicos.
 
 ## Fluxo de trabalho
 
-1. Lovable implementa a interface e abre PR no repositório `app).
+1. Lovable implementa a interface e abre PR no repositório `app`.
 2. Claude/Codex revisam o contrato da API e implementam backend, banco e testes.
 3. O PR registra issue, critérios de aceite, validações e impacto de deployment.
 4. Após merge em `main`, a Hostinger faz o deployment do subdomínio.
