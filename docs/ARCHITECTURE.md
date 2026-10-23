@@ -2,7 +2,7 @@
 
 ## Responsabilidades
 
-O repositório `felicioe/app` contém exclusivamente o Thera Workspace e o Thera Flow/BPO. Ele é publicado em `https://app.therafinancial.com.br`.
+O repositório `felicioe/app` contém exclusivamente o Thera Workspace. O BPO/Flow é um módulo interno do Workspace, junto do Advisory. Ele é publicado em `https://app.therafinancial.com.br`.
 
 - **Lovable:** implementa e evolui a interface React/TypeScript em `src/`.
 - **Claude/Codex:** implementam a API PHP, autenticação, regras de negócio, banco, testes, documentação e deployment.
@@ -17,10 +17,10 @@ navegador
   -> SPA React/Vite (arquivos compilados)
   -> /api/*.php
   -> PHP 8.x + PDO
-  -> banco MySQL exclusivo do Workspace
+  -> banco MySQL compartilhado pelo SiteGlobal e pelo Workspace, com separação lógica
 ```
 
-O React não acessa o MySQL diretamente. Toda autenticação, autorização, isolamento por `cliente_id`, upload, aprovação, importação e faturamento passam pela API PHP.
+O React não acessa o MySQL diretamente. Toda autenticação, autorização, isolamento por `cliente_id`, upload, aprovação, importação e faturamento passam pela API PHP. O SiteGlobal pode usar somente dados institucionais autorizados; o Workspace concentra Advisory e BPO/Flow.
 
 ## Contrato de publicação
 
