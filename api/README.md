@@ -54,3 +54,17 @@ Importar `authService`, `advisoryService`, `flowService` nos componentes reais. 
 ## Verificação
 
 `php api/tests/run.php` cobre cálculos, precisão, datas, escopo multi-tenant e CSV/validação de lotes. `python api/tests/http_smoke.py` verifica autenticação, CORS, métodos e JSON inválido usando servidor efêmero local. Executar lint de todos os PHP, `npx tsc -p tsconfig.services.json` e `npm run build`. Validar em MySQL de desenvolvimento antes do deploy: isolamento entre dois clientes, login/logout, aprovação concorrente/repetida, cascata, rollback de lote, downloads sem token e dois fechamentos simultâneos. A máquina local fornecida não tem `pdo_mysql`, `fileinfo` ou `zip` habilitados; esses fluxos não podem ser considerados testados ponta a ponta aqui.
+
+
+## Administração do Workspace
+
+Rotas administrativas exigem `Authorization: Bearer <token>` de um usuário `bpo_adm`.
+
+- `GET /api/admin/usuarios.php`: lista usuários, opcionalmente filtrados por `cliente_id`.
+- `POST /api/admin/usuarios.php`: cria usuário com `nome`, `email`, `senha`, `perfil` e `cliente_id` quando aplicável.
+- `PATCH /api/admin/usuarios.php`: atualiza usuário por `id`; pode alterar nome, e-mail, perfil, ativo e senha.
+- `GET /api/admin/clientes.php`: lista clientes/tenants.
+- `POST /api/admin/clientes.php`: cria cliente com regras de cobrança.
+- `PATCH /api/admin/clientes.php`: atualiza dados de cobrança de um cliente.
+
+Senhas nunca são retornadas. A interface deve tratar 401/403/409/422 usando o envelope padrão.
