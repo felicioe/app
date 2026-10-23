@@ -45,6 +45,9 @@ if ($method === 'POST') {
 
 [$data, $perfil] = adminPayload();
 $id = positiveId($data['id'] ?? null);
+if ($id === (int)$user['id'] && array_key_exists('ativo', $data) && !(bool)$data['ativo']) {
+    throw new HttpError(422, 'Não é permitido desativar a própria conta.');
+}
 $fields = [];
 $params = [];
 foreach (['nome','email','perfil'] as $field) {
