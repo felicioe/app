@@ -9,7 +9,8 @@ import {
   Kanban, 
   FileText, 
   SlidersHorizontal,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { Cliente } from '../../mock/mockData';
 
@@ -46,6 +47,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'entrada_docs', label: 'Cockpit de Entrada', icon: FileSpreadsheet },
     { id: 'fila_pagamentos', label: 'Fila de Pagamentos', icon: Briefcase },
     { id: 'plano_contas', label: 'Plano de Contas', icon: SlidersHorizontal },
+    { id: 'admin', label: 'Administração', icon: Settings },
   ];
 
   const currentMenu = activeModule === 'advisory' ? menuAdvisory : menuFlow;
