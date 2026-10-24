@@ -6,6 +6,7 @@ import { TimesheetView } from './components/advisory/TimesheetView';
 import { WorkspaceView } from './components/flow/WorkspaceView';
 import { CLIENTES_MOCK, Cliente } from './mock/mockData';
 import { authService } from './services/authService';
+import { clienteService } from './services/clienteService';
 import { ApiError, type Usuario } from './services/apiClient';
 
 type Module = 'workspace' | 'advisory';
@@ -22,11 +23,22 @@ function LoginPage({ module, onLogin }: { module: Module; onLogin: (user: Usuari
 
 export function App() {
   const module: Module | null = window.location.pathname.startsWith('/workspace') ? 'workspace' : window.location.pathname.startsWith('/advisory') ? 'advisory' : null;
-  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente>(CLIENTES_MOCK[0]); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
+  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
+  const [clientes, setClientes] = useState<Cliente[]>([]); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null); const [loadingClientes, setLoadingClientes] = useState(false); const [usandoMock, setUsandoMock] = useState(false);
   useEffect(() => { if (module) authService.current().then(setUser).catch(() => setUser(null)).finally(() => setChecking(false)); }, [module]);
+  useEffect(() => {
+    if (!user) return;
+    setLoadingClientes(true);
+    clienteService.listar()
+      .then((lista) => { setClientes(lista); setClienteSelecionado(lista[0] ?? null); setUsandoMock(false); })
+      .catch(() => { setClientes(CLIENTES_MOCK); setClienteSelecionado(CLIENTES_MOCK[0]); setUsandoMock(true); })
+      .finally(() => setLoadingClientes(false));
+  }, [user]);
   if (!module) return <LandingPage />; if (checking) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>; if (!user) return <LoginPage module={module} onLogin={setUser} />;
+  if (loadingClientes) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>;
+  if (!clienteSelecionado) return <div className="flex min-h-screen items-center justify-center text-slate-500"><p className="text-sm">Nenhum cliente vinculado à sua conta.</p></div>;
   const activeModule = module === 'workspace' ? 'flow' : 'advisory';
-  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'dashboard' ? <TimesheetView cliente={clienteSelecionado} /> : module === 'workspace' && activeView === 'entrada_docs' ? <WorkspaceView cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
+  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clientes={clientes} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado} avisoClientesMock={usandoMock}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'dashboard' ? <TimesheetView cliente={clienteSelecionado} /> : module === 'workspace' && activeView === 'entrada_docs' ? <WorkspaceView cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
 }
 
 export default App;
