@@ -1,0 +1,13 @@
+Options -MultiViews
+RewriteEngine On
+
+# A API tem suas próprias regras e não deve ser encaminhada para o React.
+RewriteRule ^api(?:/|$) - [L]
+
+# Assets e arquivos reais continuam sendo servidos diretamente.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Rotas da SPA: /workspace e /advisory (e futuras rotas) usam o entrypoint React.
+RewriteRule ^ index.html [L]
