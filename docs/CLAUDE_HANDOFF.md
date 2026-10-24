@@ -63,14 +63,23 @@ O JWT é armazenado na sessão local do navegador e enviado como `Authorization:
 9. Upload de documentos com anexo e aprovação de alçadas.
 10. Logout real: chama API, limpa sessão e retorna ao login.
 11. Dashboard passou a carregar tarefas reais via `kanban.php` para evitar tarefa fixa.
+12. Issue #15 fechada: reaprovação de documento bloqueada no front (`status === 'aprovado'` desabilita o botão); backend já rejeitava a transição com HTTP 409.
+13. Dados mestres do Flow: `GET api/flow/cadastros.php` (fornecedores, tipos de documento, plano de contas — só contas analíticas — e centro de custo); os 4 campos numéricos livres do formulário de documentos agora são selects.
+14. Clientes reais: `GET api/clientes.php` substitui o seletor fixo da sidebar; `CLIENTES_MOCK` só é usado como fallback visível (selo “Clientes de exemplo”) se a API falhar.
+15. Advisory completo: select de tarefas reais e filtro de período no dashboard de horas; nova tela `FaturamentoView.tsx` com fechamento de período (`advisoryService.fechar`) e registro/listagem de despesas (`advisoryService.registrarDespesa`), ligada ao menu “Fechamento & Faturas”.
+16. CI: `.github/workflows/build.yml` roda `npm run build`, lint de todo o PHP e os testes de `api/tests/` (sem banco) em cada PR e push em `main`.
+17. `api/storage/uploads/.htaccess` versionado para garantir que a pasta de upload exista em qualquer checkout/deploy (antes era um diretório vazio, não versionado pelo Git).
 
 ## Histórico recente
 
-- `c00f33d` — merge cockpit Workspace
-- `26a2aad` — merge entrada de documentos
-- `a7efc26` — merge dashboard de horas Advisory
-- `f760fc3` — merge logout da sessão
-- `6170afa` — carregar tarefas reais no timesheet
+- PR #17 — bloquear reaprovação de documento (issue #15).
+- PR #20 — dados mestres do Flow (`flow/cadastros.php` + selects).
+- PR #21 — clientes reais (`clientes.php` + fallback de mock).
+- PR #22 — select de tarefas reais e filtro de período no timesheet.
+- PR #23 — fechamento/faturamento e despesas do Advisory (`FaturamentoView.tsx`).
+- PR #25 — **hotfix**: `api/clientes.php` retornava HTTP 500 em toda chamada (caminho errado do `require_once` do bootstrap — ver “Incidentes resolvidos” abaixo).
+- PR #27 — pipeline de CI, diretório `api/storage/uploads` versionado, smoke test ampliado.
+- Commits diretos em `main` (outro agente/sessão, não revertidos): remoção de `api/auth/diagnose.php`, ajuste de leitura de variáveis privadas do ambiente Hostinger em `api/config/database.php`, e página de consentimento/LGPD em `src/App.tsx`.
 
 Issues/PRs principais:
 
@@ -78,7 +87,7 @@ Issues/PRs principais:
 - Issue #10 / PR #11: dashboard de horas.
 - Issue #12 / PR #13: logout.
 - Issue #14: tarefas reais no timesheet (encerrada; commit direto em `main`).
-- Issue #15: impedir reaprovação de documentos (aberta, pendente).
+- Issue #15: impedir reaprovação de documentos (**encerrada** via PR #17).
 
 ## Estado atual do frontend
 
@@ -86,37 +95,32 @@ Issues/PRs principais:
 
 - Advisory + `dashboard` → `TimesheetView`.
 - Advisory + `kanban` → `KanbanView`.
+- Advisory + `faturas` → `FaturamentoView`.
 - Workspace + `entrada_docs` → `WorkspaceView`.
 
-`AppLayout` ainda usa `CLIENTES_MOCK` para o seletor de clientes. Isso é provisório: deve ser substituído por endpoint de clientes autenticado.
+A lista de clientes vem de `GET api/clientes.php` (carregada em `App.tsx` após o login) e é passada por prop para `AppLayout`. `CLIENTES_MOCK` (`src/mock/mockData.ts`) só é usado como fallback se essa chamada falhar, com aviso visível na tela — não deve ser removido, serve de rede de segurança para desenvolvimento local sem backend.
 
-## Pendências prioritárias
+## Assunções de schema a validar em produção (não bloqueiam o deploy, mas podem fazer um cadastro aparecer vazio)
 
-### 1. Fechar issue #15
+Várias tabelas referenciadas pelo código (`fornecedores`, `tipos_documento`, `clientes`) já existem em produção e não têm DDL neste repositório — `api/sql/schema.reference.sql` é só referência para banco novo, não a migração real (ver `api/README.md`). As assunções feitas, documentadas também no `api/README.md`:
 
-Impedir reaprovação no frontend e confirmar a proteção no backend. O componente `WorkspaceView.tsx` está muito compactado em linhas únicas; ao editar, prefira reformatar o componente inteiro para facilitar manutenção. O botão deve ficar desabilitado quando `status === 'aprovado'`, e o backend deve continuar rejeitando transições inválidas.
+- `fornecedores` e `tipos_documento`: assumidas colunas `id,nome` em `api/flow/cadastros.php`.
+- `clientes`: assumida coluna única `nome` (sem `razao_social`/`nome_fantasia` separados) em `api/clientes.php`.
 
-### 2. Dados mestres do Flow
+Se algum select aparecer vazio ou com nome errado em produção, rodar `SHOW CREATE TABLE <tabela>;` e ajustar apenas a query do endpoint correspondente — mudança isolada e de baixo risco.
 
-O formulário de documentos exige IDs de fornecedor, tipo, plano de contas e centro de custo. Criar endpoints GET para esses cadastros e trocar campos numéricos livres por selects carregados da API.
+## Pendências
 
-### 3. Clientes reais
+### Qualidade e operação (parcialmente endereçado)
 
-Criar endpoint autenticado de clientes e remover a dependência de `CLIENTES_MOCK` no layout. Manter o mock apenas como fallback de desenvolvimento.
+- Testes automatizados mínimos de auth/CORS/roteamento e cálculo de faturamento já existem (`api/tests/run.php`, `api/tests/http_smoke.py`) e agora rodam em CI a cada PR. **Faltam** testes de ponta a ponta contra MySQL real (auth completo, timesheet, documentos) — não executáveis no ambiente de desenvolvimento atual, que não tem `pdo_mysql` configurado contra um banco real.
+- `thera-api-deploy.zip`: não existe mais no checkout atual, nada a remover.
+- Verificar na Hostinger (fora do alcance deste repositório) se a pasta `api/storage/uploads` está com permissão de escrita pelo PHP após o próximo deploy — o `.htaccess` garante que a pasta exista no código, mas permissão de escrita no servidor é operacional.
 
-### 4. Advisory
+### Novas pendências identificadas
 
-- Trocar o campo numérico de tarefa por um select de tarefas reais.
-- Implementar fechamento/faturamento usando `advisoryService.fechar`.
-- Implementar despesas usando `advisoryService.registrarDespesa`.
-- Adicionar filtros de período no dashboard.
-
-### 5. Qualidade e operação
-
-- Adicionar testes automatizados mínimos para auth, timesheet e documentos.
-- Verificar logs e permissões da pasta `api/storage/uploads` na Hostinger.
-- Configurar pipeline GitHub Actions para `npm run build` em PR.
-- Remover o artefato local não versionado `thera-api-deploy.zip` quando não for mais necessário.
+- Validar as assunções de schema da seção acima contra o banco real da Hostinger.
+- `menuFlow` em `AppLayout.tsx` ainda lista os itens `fila_pagamentos` e `plano_contas` sem view implementada (caem no placeholder “Módulo em desenvolvimento”).
 
 ## Fluxo recomendado para o próximo agente
 
@@ -134,8 +138,20 @@ Criar endpoint autenticado de clientes e remover a dependência de `CLIENTES_MOC
 - Não executar `git reset --hard` nem apagar diretórios amplos.
 - Não considerar o deploy concluído apenas pelo push: a Hostinger pode levar alguns minutos para construir e publicar.
 - Se a API retornar erro interno, testar primeiro a URL/host do banco e as variáveis do ambiente da Hostinger.
+- **Caminho do bootstrap em novo endpoint PHP**: arquivos dentro de uma subpasta (`api/flow/*.php`, `api/advisory/*.php`, `api/auth/*.php`) usam `require_once dirname(__DIR__).'/bootstrap.php';`. Um arquivo direto na raiz de `api/` (como `api/clientes.php`) deve usar `require_once __DIR__.'/bootstrap.php';` — o padrão errado quebra com HTTP 500 silencioso (ver incidente de 24/10/2026 abaixo). `php -l` não detecta esse erro porque é um caminho de arquivo em tempo de execução, não sintaxe; testar com `php -S` local ou rodar o smoke test antes de confiar no endpoint.
+- Outra sessão/agente pode estar trabalhando no mesmo repositório em paralelo (commits diretos em `main` já foram observados). Sempre `git pull --ff-only origin main` antes de criar uma branch nova, e revalidar `npm run build` após sincronizar.
 
-## Incidente de produção resolvido em 24/10/2026
+## Incidentes resolvidos
+
+### 24/10/2026 — HTTP 500 em `api/clientes.php`
+
+Sintoma: toda chamada ao endpoint de clientes (introduzido para substituir `CLIENTES_MOCK`) retornava HTTP 500, inclusive sem autenticação (deveria ser 401).
+
+Causa: `api/clientes.php` usava `require_once dirname(__DIR__).'/bootstrap.php';`, padrão correto só para arquivos em subpasta. Por estar na raiz de `api/`, o caminho resolvido ficava fora do projeto e o `require_once` falhava com erro fatal não tratado.
+
+Correção: trocado para `require_once __DIR__.'/bootstrap.php';` (PR #25). Detectado ao ampliar `api/tests/http_smoke.py` para cobrir o endpoint — reforça o valor de manter esse teste atualizado a cada novo endpoint.
+
+### 24/10/2026 — Login HTTP 500
 
 Sintoma: o login retornava HTTP 500 em `/api/auth/login.php` mesmo após a criação das tabelas de autenticação.
 
