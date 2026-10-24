@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Cliente } from '../mock/mockData';
+import type { Cliente } from '../types/domain';
 
 export type UsuarioAdmin = { id: number; cliente_id: number | null; nome: string; email: string; ativo: number | boolean; perfil: string };
 
