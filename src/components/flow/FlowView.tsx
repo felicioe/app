@@ -45,7 +45,7 @@ export const FlowView: React.FC<FlowViewProps> = ({ view, cliente }) => {
     const form = new FormData(event.currentTarget);
     const arquivo = form.get('arquivo');
     const destino = form.get('destino') as Destino;
-    const mapeamento = { codigo: String(form.get('col_codigo')), descricao: String(form.get('col_descricao')), tipo: String(form.get('col_tipo') || ''), codigo_pai: String(form.get('col_pai') || '') };
+    const mapeamento: Record<string, string> = { codigo: String(form.get('col_codigo')), descricao: String(form.get('col_descricao')) }; if (form.get('col_tipo')) mapeamento.tipo = String(form.get('col_tipo')); if (form.get('col_pai')) mapeamento.codigo_pai = String(form.get('col_pai'));
     if (!(arquivo instanceof File) || arquivo.size === 0) { setError('Selecione um arquivo CSV ou XLSX.'); setSaving(false); return; }
     try {
       await flowService.importarArquivo(cliente.id, destino, arquivo, mapeamento);
