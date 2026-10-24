@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { CheckCircle2, LoaderCircle } from 'lucide-react';
 import { advisoryService, type Despesa } from '../../services/advisoryService';
-import type { Cliente } from '../../mock/mockData';
+import type { Cliente } from '../../types/domain';
 import { ApiError } from '../../services/apiClient';
 
 export const DespesasView: React.FC<{ cliente: Cliente }> = ({ cliente }) => {
