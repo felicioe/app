@@ -134,3 +134,33 @@ Criar endpoint autenticado de clientes e remover a dependência de `CLIENTES_MOC
 - Não executar `git reset --hard` nem apagar diretórios amplos.
 - Não considerar o deploy concluído apenas pelo push: a Hostinger pode levar alguns minutos para construir e publicar.
 - Se a API retornar erro interno, testar primeiro a URL/host do banco e as variáveis do ambiente da Hostinger.
+
+## Incidente de produção resolvido em 24/10/2026
+
+Sintoma: o login retornava HTTP 500 em `/api/auth/login.php` mesmo após a criação das tabelas de autenticação.
+
+Diagnóstico comprovado:
+
+- O PHP da Hostinger não recebia automaticamente as variáveis `DB_*` configuradas para o app Node.
+- O runtime PHP não encontrava `database.local.php` no diretório ativo.
+- Depois de corrigir a configuração do banco, o erro mudou para HTTP 401, revelando que o hash da senha do usuário administrador estava divergente.
+
+Correção aplicada:
+
+1. `api/config/database.php` passou a procurar o `.env` privado em todos os caminhos usados pelo runtime Hostinger, sem versionar credenciais.
+2. A versão ativa foi reimplantada no Hostinger.
+3. `database.local.php` foi criado no diretório de runtime ativo pelo File Manager.
+4. O hash do usuário `felicioe@gmail.com` foi atualizado diretamente no banco, sem registrar a senha em GitHub.
+
+Validação final:
+
+- `POST https://www.therafinancial.com.br/api/auth/login.php` retornou HTTP 200.
+- `GET https://www.therafinancial.com.br/api/auth/me.php` com Bearer retornou HTTP 200.
+- Usuário validado: perfil `bpo_adm`.
+
+Prevenção de regressão:
+
+- Não remover o fallback de `.env` de `database.php`.
+- Após cada deploy Node, confirmar se o runtime PHP ainda localiza a configuração privada.
+- Nunca colocar senha, token ou `database.local.php` no GitHub.
+- Se o login voltar a falhar, testar primeiro o status HTTP: 500 indica configuração/conexão PHP; 401 indica credencial/hash.
