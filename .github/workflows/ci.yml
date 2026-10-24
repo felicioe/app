@@ -53,5 +53,6 @@ jobs:
           test -f public/.htaccess
           test -f api/auth/login.php
           test -f api/auth/me.php
+          test -f api/health.php
           test -f api/flow/documentos.php
           test -f api/flow/cliente.php
