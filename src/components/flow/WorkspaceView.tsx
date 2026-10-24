@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, LoaderCircle, RefreshCw, Upload } from 'lucide-react';
 import type { Cliente } from '../../mock/mockData';
-import { flowService, type Documento } from '../../services/flowService';
+import { flowService, type CadastroCodigo, type CadastroNome, type Documento } from '../../services/flowService';
 
 const FORM_INICIAL = {
   descricao: '',
@@ -21,6 +21,10 @@ export function WorkspaceView({ cliente }: { cliente: Cliente }) {
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState(FORM_INICIAL);
   const [anexo, setAnexo] = useState<File | null>(null);
+  const [fornecedores, setFornecedores] = useState<CadastroNome[]>([]);
+  const [tiposDocumento, setTiposDocumento] = useState<CadastroNome[]>([]);
+  const [planoContas, setPlanoContas] = useState<CadastroCodigo[]>([]);
+  const [centrosCusto, setCentrosCusto] = useState<CadastroCodigo[]>([]);
 
   const load = () => {
     setLoading(true);
@@ -32,7 +36,15 @@ export function WorkspaceView({ cliente }: { cliente: Cliente }) {
       .finally(() => setLoading(false));
   };
 
+  const loadCadastros = () => {
+    flowService.fornecedores(cliente.id).then(setFornecedores).catch(() => setFornecedores([]));
+    flowService.tiposDocumento().then(setTiposDocumento).catch(() => setTiposDocumento([]));
+    flowService.planoContas(cliente.id).then(setPlanoContas).catch(() => setPlanoContas([]));
+    flowService.centrosCusto(cliente.id).then(setCentrosCusto).catch(() => setCentrosCusto([]));
+  };
+
   useEffect(load, [cliente.id]);
+  useEffect(loadCadastros, [cliente.id]);
 
   const approve = async (documento: Documento) => {
     if (documento.status === 'aprovado') return;
@@ -86,6 +98,36 @@ export function WorkspaceView({ cliente }: { cliente: Cliente }) {
     </label>
   );
 
+  const selectNome = (key: keyof typeof form, label: string, opcoes: CadastroNome[]) => (
+    <label className="space-y-1 text-xs font-medium text-slate-700">
+      {label}
+      <select
+        required
+        value={form[key]}
+        onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-emerald-500"
+      >
+        <option value="" disabled>Selecione</option>
+        {opcoes.map((opcao) => <option key={opcao.id} value={opcao.id}>{opcao.nome}</option>)}
+      </select>
+    </label>
+  );
+
+  const selectCodigo = (key: keyof typeof form, label: string, opcoes: CadastroCodigo[]) => (
+    <label className="space-y-1 text-xs font-medium text-slate-700">
+      {label}
+      <select
+        required
+        value={form[key]}
+        onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-emerald-500"
+      >
+        <option value="" disabled>Selecione</option>
+        {opcoes.map((opcao) => <option key={opcao.id} value={opcao.id}>{opcao.codigo} — {opcao.descricao}</option>)}
+      </select>
+    </label>
+  );
+
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between">
@@ -104,10 +146,10 @@ export function WorkspaceView({ cliente }: { cliente: Cliente }) {
         <div className="md:col-span-2">{field('descricao', 'Descrição')}</div>
         {field('valor', 'Valor', 'number')}
         {field('vencimento', 'Vencimento', 'date')}
-        {field('fornecedor_id', 'ID fornecedor', 'number')}
-        {field('tipo_documento_id', 'ID tipo', 'number')}
-        {field('plano_contas_id', 'ID plano de contas', 'number')}
-        {field('centro_custo_id', 'ID centro de custo', 'number')}
+        {selectNome('fornecedor_id', 'Fornecedor', fornecedores)}
+        {selectNome('tipo_documento_id', 'Tipo de documento', tiposDocumento)}
+        {selectCodigo('plano_contas_id', 'Plano de contas', planoContas)}
+        {selectCodigo('centro_custo_id', 'Centro de custo', centrosCusto)}
         <label className="space-y-1 text-xs font-medium text-slate-700 md:col-span-3">
           Anexo (PDF, JPEG, PNG ou WebP)
           <input
