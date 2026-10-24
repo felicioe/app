@@ -26,6 +26,8 @@ Tokens aleatórios de 256 bits expiram em oito horas; somente SHA-256 do token f
 
 ## Contrato HTTP
 
+- `GET health.php`: verifica a execução do PHP e a conexão PDO com o banco; retorna 200 quando ambos estão disponíveis e 503 quando o banco não está acessível.
+
 Respostas: `{status,data,error,timestamp}`; `status` é `success` ou `error`. Autenticação: `Authorization: Bearer <token>`. Enviar `cliente_id` nas chamadas de negócio: usuários de cliente só podem acessar o cliente da sessão; perfis BPO devem informar explicitamente o cliente. Leituras de listas têm limites; paginação ainda não implementada.
 
 - `POST auth/login.php`: JSON `{email,senha}`; retorna `{token,usuario}`.
