@@ -80,6 +80,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
             className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -138,6 +139,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </label>
             <div className="relative">
               <select
+                aria-label="Cliente em foco"
                 value={clienteSelecionado.id}
                 onChange={(e) => {
                   const c = clientes.find(item => item.id === Number(e.target.value));
