@@ -16,6 +16,7 @@ export const adminService = {
   async clienteAtual(id: number): Promise<Cliente> { return mapCliente(await apiClient<ClienteApi>(`flow/cliente.php?cliente_id=${id}`)); },
   async usuarios(): Promise<UsuarioAdmin[]> { return apiClient<UsuarioAdmin[]>('admin/usuarios.php'); },
   async criarCliente(data: { nome: string; tipo_cobranca: string }): Promise<{ id: number }> { return apiClient<{ id: number }>('admin/clientes.php', { method: 'POST', body: JSON.stringify(data) }); },
+  async atualizarCliente(id: number, data: { nome: string; tipo_cobranca: string }): Promise<void> { await apiClient('admin/clientes.php', { method: 'PATCH', body: JSON.stringify({ id, ...data }) }); },
   async atualizarUsuario(id: number, data: { perfil: string; ativo: boolean }): Promise<void> { await apiClient('admin/usuarios.php', { method: 'PATCH', body: JSON.stringify({ id, ...data }) }); },
   async criarUsuario(data: { nome: string; email: string; senha: string; perfil: string; cliente_id?: number }): Promise<{ id: number }> { return apiClient<{ id: number }>('admin/usuarios.php', { method: 'POST', body: JSON.stringify(data) }); },
 };
