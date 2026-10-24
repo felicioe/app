@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { LoaderCircle, RefreshCw, Users } from 'lucide-react';
 import { adminService, type UsuarioAdmin } from '../../services/adminService';
-import type { Cliente } from '../../mock/mockData';
+import type { Cliente } from '../../types/domain';
 import { ApiError } from '../../services/apiClient';
 
 export const AdminView: React.FC = () => {
