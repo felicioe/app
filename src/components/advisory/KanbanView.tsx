@@ -1,129 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Square, Plus } from 'lucide-react';
-import { TAREFAS_KANBAN_MOCK, TarefaKanban, Cliente } from '../../mock/mockData';
+import React, { useEffect, useMemo, useState } from 'react';
+import { LoaderCircle, Play, Square } from 'lucide-react';
+import type { Cliente, TarefaKanban } from '../../mock/mockData';
+import { advisoryService } from '../../services/advisoryService';
 
-interface KanbanViewProps {
-  cliente: Cliente;
+interface KanbanViewProps { cliente: Cliente }
+type ApiStatus = 'pendente' | 'em_andamento' | 'concluida';
+const columns = [
+  { id: 'backlog', label: 'Diagnóstico / Backlog' },
+  { id: 'planejado', label: 'Planeado' },
+  { id: 'execucao', label: 'Em Execução' },
+  { id: 'validacao', label: 'Em Validação' },
+  { id: 'concluido', label: 'Concluído' },
+] as const;
+
+function mapTask(task: { id: number; titulo: string; status: ApiStatus }): TarefaKanban {
+  return { id: task.id, clienteId: 0, titulo: task.titulo, status: task.status === 'concluida' ? 'concluido' : task.status === 'em_andamento' ? 'execucao' : 'backlog', horasEstimadas: 0, horasRealizadas: 0, prazo: '—' };
 }
 
 export const KanbanView: React.FC<KanbanViewProps> = ({ cliente }) => {
-  const [tarefas, setTarefas] = useState<TarefaKanban[]>(
-    TAREFAS_KANBAN_MOCK.filter(t => t.clienteId === cliente.id)
-  );
-
+  const [tarefas, setTarefas] = useState<TarefaKanban[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeTimerId, setActiveTimerId] = useState<number | null>(null);
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [startedAt, setStartedAt] = useState<Date | null>(null);
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
-    setTarefas(TAREFAS_KANBAN_MOCK.filter(t => t.clienteId === cliente.id));
-  }, [cliente]);
-
+    let active = true;
+    setLoading(true); setError('');
+    advisoryService.kanban(cliente.id).then(({ tarefas: rows }) => { if (active) setTarefas(rows.map(mapTask)); })
+      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível carregar as tarefas.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [cliente.id]);
   useEffect(() => {
     if (activeTimerId === null) return;
-    const interval = window.setInterval(() => {
-      setSecondsElapsed(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
+    const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
+    return () => window.clearInterval(timer);
   }, [activeTimerId]);
-
-  const formatTimer = (totalSeconds: number) => {
-    const hrs = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const formatTimer = (value: number) => `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor((value % 3600) / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  const toggleTimer = async (task: TarefaKanban) => {
+    if (activeTimerId === task.id && startedAt) {
+      const end = new Date();
+      try {
+        await advisoryService.apontar({ cliente_id: cliente.id, tarefa_id: task.id, data: startedAt.toISOString().slice(0, 10), hora_inicio: startedAt.toTimeString().slice(0, 8), hora_fim: end.toTimeString().slice(0, 8) });
+        setActiveTimerId(null); setStartedAt(null); setSeconds(0);
+      } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o apontamento.'); }
+    } else { setActiveTimerId(task.id); setStartedAt(new Date()); setSeconds(0); }
   };
-
-  const handleToggleTimer = (tarefaId: number) => {
-    if (activeTimerId === tarefaId) {
-      const horasGastas = Number((secondsElapsed / 3600).toFixed(2));
-      setTarefas(prev => prev.map(t => {
-        if (t.id === tarefaId) {
-          return { ...t, horasRealizadas: t.horasRealizadas + horasGastas };
-        }
-        return t;
-      }));
-      setActiveTimerId(null);
-      setSecondsElapsed(0);
-    } else {
-      setActiveTimerId(tarefaId);
-      setSecondsElapsed(0);
-    }
-  };
-
-  const colunas = [
-    { id: 'backlog', label: 'Diagnóstico / Backlog' },
-    { id: 'planejado', label: 'Planeado' },
-    { id: 'execucao', label: 'Em Execução' },
-    { id: 'validacao', label: 'Em Validação' },
-    { id: 'concluido', label: 'Concluído' },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Quadro de Demandas & Entregáveis</h2>
-          <p className="text-xs text-slate-500">Acompanhamento de escopo e horas dedicadas por atividade</p>
-        </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-          <Plus size={16} /> Nova Demanda
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
-        {colunas.map((col) => {
-          const tarefasDaColuna = tarefas.filter(t => t.status === col.id);
-          return (
-            <div key={col.id} className="bg-slate-200/60 rounded-xl p-3 border border-slate-300/60 flex flex-col min-h-[450px]">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-300">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">{col.label}</span>
-                <span className="text-xs bg-slate-300/80 text-slate-700 px-2 py-0.5 rounded-full font-bold">
-                  {tarefasDaColuna.length}
-                </span>
-              </div>
-
-              <div className="space-y-2.5 flex-1">
-                {tarefasDaColuna.map((tarefa) => {
-                  const isRunning = activeTimerId === tarefa.id;
-                  return (
-                    <div key={tarefa.id} className="bg-white p-3.5 rounded-lg border border-slate-200/90 shadow-sm hover:shadow transition">
-                      <p className="text-sm font-semibold text-slate-800 leading-snug mb-2">{tarefa.titulo}</p>
-                      
-                      <div className="flex items-center justify-between text-xs text-slate-500 mb-3 pt-1 border-t border-slate-100">
-                        <span>Prazo: {tarefa.prazo}</span>
-                        <span className="font-mono">{tarefa.horasRealizadas.toFixed(1)}h / {tarefa.horasEstimadas}h</span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        {isRunning ? (
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                            <span className="font-mono text-xs font-bold text-red-600">{formatTimer(secondsElapsed)}</span>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-slate-400">Registar horas</span>
-                        )}
-
-                        <button
-                          onClick={() => handleToggleTimer(tarefa.id)}
-                          className={`p-1.5 rounded-md flex items-center justify-center transition ${
-                            isRunning 
-                              ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                          }`}
-                          title={isRunning ? "Finalizar e Guardar Tempo" : "Iniciar Cronómetro"}
-                        >
-                          {isRunning ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+  const grouped = useMemo(() => columns.map((column) => ({ ...column, tasks: tarefas.filter((task) => task.status === column.id) })), [tarefas]);
+  if (loading) return <div className="flex min-h-[300px] items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>;
+  return <div className="space-y-4">
+    <div><h2 className="text-xl font-bold text-slate-900">Quadro de Demandas & Entregáveis</h2><p className="text-xs text-slate-500">Dados carregados do Thera Advisory para {cliente.nomeFantasia}.</p></div>
+    {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-5">
+      {grouped.map((column) => <div key={column.id} className="min-h-[300px] rounded-xl border border-slate-300/60 bg-slate-200/60 p-3"><div className="mb-2 flex justify-between border-b border-slate-300 pb-2"><span className="text-xs font-bold uppercase tracking-wider text-slate-700">{column.label}</span><span className="rounded-full bg-slate-300/80 px-2 py-0.5 text-xs font-bold text-slate-700">{column.tasks.length}</span></div><div className="space-y-2.5">{column.tasks.map((task) => { const running = activeTimerId === task.id; return <div key={task.id} className="rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-sm"><p className="mb-3 text-sm font-semibold leading-snug text-slate-800">{task.titulo}</p><div className="flex items-center justify-between text-xs text-slate-500"><span>{running ? <span className="font-mono font-bold text-red-600">{formatTimer(seconds)}</span> : 'Registrar horas'}</span><button onClick={() => void toggleTimer(task)} className={`rounded-md p-1.5 ${running ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}`} title={running ? 'Finalizar e guardar tempo' : 'Iniciar cronômetro'}>{running ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}</button></div></div>; })}</div></div>)}
     </div>
-  );
+  </div>;
 };
