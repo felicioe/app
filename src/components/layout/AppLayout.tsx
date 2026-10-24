@@ -27,6 +27,7 @@ interface AppLayoutProps {
   canAdmin: boolean;
   onLogout: () => void;
   canOperate: boolean;
+  canBilling: boolean;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -41,6 +42,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   canAdmin,
   onLogout,
   canOperate,
+  canBilling,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -58,7 +60,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'admin', label: 'Administração', icon: Settings },
   ];
 
-  const currentMenu = (activeModule === 'advisory' ? menuAdvisory : menuFlow).filter(item => (item.id !== 'admin' || canAdmin) && (item.id !== 'despesas' || canOperate));
+  const currentMenu = (activeModule === 'advisory' ? menuAdvisory : menuFlow).filter(item => (item.id !== 'admin' || canAdmin) && (item.id !== 'despesas' || canOperate) && (item.id !== 'faturas' || canBilling));
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
