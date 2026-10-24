@@ -12,6 +12,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { CLIENTES_MOCK, Cliente } from '../../mock/mockData';
+import { authService } from '../../services/authService';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -181,7 +182,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             )}
           </div>
           {sidebarOpen && (
-            <button className="text-slate-500 hover:text-red-400 transition" title="Sair">
+            <button onClick={() => { void authService.logout().finally(() => { window.location.href = activeModule === 'flow' ? '/workspace' : '/advisory'; }); }} className="text-slate-500 hover:text-red-400 transition" title="Sair">
               <LogOut size={16} />
             </button>
           )}
