@@ -8,6 +8,7 @@ import {
   Clock, 
   Kanban, 
   FileText, 
+  Receipt,
   SlidersHorizontal,
   LogOut,
   Settings
@@ -45,6 +46,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'dashboard', label: 'Dashboard de Horas', icon: Clock },
     { id: 'kanban', label: 'Quadro de Projetos', icon: Kanban },
     { id: 'faturas', label: 'Fechamento & Faturas', icon: FileText },
+    { id: 'despesas', label: 'Despesas', icon: Receipt },
   ];
 
   const menuFlow = [
