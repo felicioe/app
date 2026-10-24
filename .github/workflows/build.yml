@@ -1,0 +1,33 @@
+name: Build e testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Lint dos arquivos PHP
+        run: find api -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Testes unitários da API (sem banco)
+        run: php api/tests/run.php
+
+      - name: Smoke HTTP da API (sem banco)
+        run: python3 api/tests/http_smoke.py
