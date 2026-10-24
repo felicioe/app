@@ -9,8 +9,9 @@ function database(): PDO {
     $port = getenv('DB_PORT') ?: ($local['port'] ?? '3306');
     $name = getenv('DB_NAME') ?: ($local['name'] ?? null);
     $user = getenv('DB_USER') ?: ($local['user'] ?? null);
-    $password = getenv('DB_PASSWORD');
-    if ($password === false || $password === '') $password = $local['password'] ?? null;
+    // A configuração local do deploy tem precedência para permitir rotação segura
+    // da senha sem depender de um valor antigo mantido no painel de ambiente.
+    $password = $local['password'] ?? getenv('DB_PASSWORD');
     if (!$name || !$user || $password === false || $password === '') {
         throw new RuntimeException('Configure DB_NAME, DB_USER e DB_PASSWORD no ambiente do servidor.');
     }
