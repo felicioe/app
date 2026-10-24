@@ -31,6 +31,9 @@ jobs:
       - name: Verificar tipos e build do frontend
         run: npm run build
 
+      - name: Verificar contrato frontend
+        run: node scripts/check-frontend-contract.mjs
+
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
