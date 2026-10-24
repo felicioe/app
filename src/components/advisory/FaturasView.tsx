@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import type { Cliente } from '../../mock/mockData';
+import type { Cliente } from '../../types/domain';
 
 type Fatura = { id: number; periodo_inicio: string; periodo_fim: string; minutos: number; total_centavos: number; status?: string };
 export const FaturasView: React.FC<{ cliente: Cliente }> = ({ cliente }) => {
