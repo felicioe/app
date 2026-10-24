@@ -47,3 +47,11 @@ jobs:
 
       - name: Executar testes da API
         run: php api/tests/run.php
+
+      - name: Verificar artefatos de publicação
+        run: |
+          test -f public/.htaccess
+          test -f api/auth/login.php
+          test -f api/auth/me.php
+          test -f api/flow/documentos.php
+          test -f api/flow/cliente.php
