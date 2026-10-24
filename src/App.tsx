@@ -7,7 +7,7 @@ import { LiveKanbanView } from './components/advisory/LiveKanbanView';
 import { DespesasView } from './components/advisory/DespesasView';
 import { FlowView } from './components/flow/FlowView';
 import { AdminView } from './components/admin/AdminView';
-import type { Cliente } from './mock/mockData';
+import type { Cliente } from './types/domain';
 import { authService } from './services/authService';
 import { adminService } from './services/adminService';
 import { ApiError, type Usuario } from './services/apiClient';
