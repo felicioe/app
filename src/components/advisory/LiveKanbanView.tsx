@@ -1,0 +1,14 @@
+import React, { useEffect, useState } from 'react';
+import { LoaderCircle, RefreshCw } from 'lucide-react';
+import { advisoryService, type Tarefa } from '../../services/advisoryService';
+import type { Cliente } from '../../types/domain';
+import { ApiError } from '../../services/apiClient';
+
+export const LiveKanbanView: React.FC<{ cliente: Cliente }> = ({ cliente }) => {
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  async function carregar() { setLoading(true); setError(''); try { setTarefas((await advisoryService.kanban(cliente.id)).tarefas); } catch (cause) { setError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar o Kanban.'); } finally { setLoading(false); } }
+  useEffect(() => { carregar(); }, [cliente.id]);
+  async function mover(id: number, status: Tarefa['status']) { try { await advisoryService.moverTarefa(cliente.id, id, status); await carregar(); } catch (cause) { setError(cause instanceof ApiError ? cause.message : 'Não foi possível mover a tarefa.'); } }
+  const cols: Tarefa['status'][] = ['pendente', 'em_andamento', 'concluida'];
+  return <div className="space-y-6"><div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-slate-900">Quadro de Projetos</h2><p className="text-sm text-slate-500">{cliente.nomeFantasia}</p></div><button onClick={carregar} className="rounded-lg border border-slate-300 bg-white p-2"><RefreshCw size={16} /></button></div>{error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}{loading ? <div className="flex items-center gap-2 text-sm text-slate-500"><LoaderCircle className="animate-spin" size={16} /> Carregando...</div> : <div className="grid gap-4 md:grid-cols-3">{cols.map(status => <section key={status} className="min-h-72 rounded-xl border border-slate-200 bg-slate-100 p-3"><h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-600">{status === 'pendente' ? 'Pendente' : status === 'em_andamento' ? 'Em andamento' : 'Concluída'}</h3><div className="space-y-2">{tarefas.filter(t => t.status === status).map(t => <div key={t.id} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"><p className="text-sm font-semibold text-slate-800">{t.titulo}</p><div className="mt-3 flex gap-2">{status !== 'pendente' && <button onClick={() => mover(t.id, 'pendente')} className="text-xs text-slate-500">Voltar</button>}{status !== 'em_andamento' && <button onClick={() => mover(t.id, 'em_andamento')} className="text-xs text-blue-600">Em andamento</button>}{status !== 'concluida' && <button onClick={() => mover(t.id, 'concluida')} className="text-xs text-emerald-600">Concluir</button>}</div></div>)}</div></section>)}</div>}</div>;
+};

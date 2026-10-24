@@ -1,6 +1,6 @@
 # Thera Workspace — API
 
-Implementação PHP 8.1+ sem framework. A página atual deste repositório é institucional, em JavaScript puro; não contém `App.tsx`, componentes React ou `src/mock/mockData.ts`. Os serviços em `src/services` estão prontos para consumo pelo frontend React quando ele for disponibilizado. A página institucional não foi substituída.
+Implementação PHP 8.1+ sem framework para a API do Thera Workspace. O frontend React/Vite e a API PHP/PDO são mantidos diretamente no repositório oficial. A aplicação é publicada exclusivamente em `app.therafinancial.com.br`; o site institucional e o Krieger possuem repositórios e deployments separados.
 
 ## Banco e instalação
 
@@ -26,6 +26,8 @@ Tokens aleatórios de 256 bits expiram em oito horas; somente SHA-256 do token f
 
 ## Contrato HTTP
 
+- `GET health.php`: verifica a execução do PHP e a conexão PDO com o banco; retorna 200 quando ambos estão disponíveis e 503 quando o banco não está acessível.
+
 Respostas: `{status,data,error,timestamp}`; `status` é `success` ou `error`. Autenticação: `Authorization: Bearer <token>`. Enviar `cliente_id` nas chamadas de negócio: usuários de cliente só podem acessar o cliente da sessão; perfis BPO devem informar explicitamente o cliente. Leituras de listas têm limites; paginação ainda não implementada.
 
 - `POST auth/login.php`: JSON `{email,senha}`; retorna `{token,usuario}`.
@@ -35,6 +37,7 @@ Respostas: `{status,data,error,timestamp}`; `status` é `success` ou `error`. Au
 - `GET/POST/PATCH advisory/kanban.php`: listar projetos/tarefas, criar tarefa e mover status (`pendente`, `em_andamento`, `concluida`). Apenas BPO altera.
 - `GET/POST advisory/despesas.php`: `{cliente_id,data,descricao,valor,reembolsavel}`. Valores monetários como string decimal com ponto.
 - `POST advisory/faturamento.php`: `{cliente_id,inicio,fim}`; exclusivo `bpo_adm`. `GET` lista faturas. Datas inclusivas. Valores calculados em centavos, arredondamento ao centavo após somar os minutos. Ciclo padrão do timesheet: mês calendário. Fechamentos sobrepostos são rejeitados; horas e despesas não podem ser lançadas em períodos encerrados.
+- `GET flow/cliente.php?cliente_id=1`: retorna somente o tenant autorizado pela sessão.
 - `GET flow/documentos.php`: `cliente_id`, filtros opcionais `inicio`, `fim` (vencimento), `status`.
 - `POST flow/documentos.php`: multipart `cliente_id,descricao,valor,vencimento,linha_digitavel?,chave_pix?,anexo`. PDF/JPEG/PNG/WebP até 10 MB, nome aleatório, download autenticado em `GET flow/anexo.php?cliente_id=1&documento_id=1`.
 - `GET flow/alcadas.php`: regras por cliente. `POST flow/alcadas.php` ou `/api/flow/alcadas/aprovar`: `{cliente_id,documento_id}`.
@@ -54,3 +57,17 @@ Importar `authService`, `advisoryService`, `flowService` nos componentes reais. 
 ## Verificação
 
 `php api/tests/run.php` cobre cálculos, precisão, datas, escopo multi-tenant e CSV/validação de lotes. `python api/tests/http_smoke.py` verifica autenticação, CORS, métodos e JSON inválido usando servidor efêmero local. Executar lint de todos os PHP, `npx tsc -p tsconfig.services.json` e `npm run build`. Validar em MySQL de desenvolvimento antes do deploy: isolamento entre dois clientes, login/logout, aprovação concorrente/repetida, cascata, rollback de lote, downloads sem token e dois fechamentos simultâneos. A máquina local fornecida não tem `pdo_mysql`, `fileinfo` ou `zip` habilitados; esses fluxos não podem ser considerados testados ponta a ponta aqui.
+
+
+## Administração do Workspace
+
+Rotas administrativas exigem `Authorization: Bearer <token>` de um usuário `bpo_adm`.
+
+- `GET /api/admin/usuarios.php`: lista usuários, opcionalmente filtrados por `cliente_id`.
+- `POST /api/admin/usuarios.php`: cria usuário com `nome`, `email`, `senha`, `perfil` e `cliente_id` quando aplicável.
+- `PATCH /api/admin/usuarios.php`: atualiza usuário por `id`; pode alterar nome, e-mail, perfil, ativo e senha.
+- `GET /api/admin/clientes.php`: lista clientes/tenants.
+- `POST /api/admin/clientes.php`: cria cliente com regras de cobrança.
+- `PATCH /api/admin/clientes.php`: atualiza dados de cobrança de um cliente.
+
+Senhas nunca são retornadas. A interface deve tratar 401/403/409/422 usando o envelope padrão.

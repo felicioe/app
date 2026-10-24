@@ -8,10 +8,12 @@ import {
   Clock, 
   Kanban, 
   FileText, 
+  Receipt,
   SlidersHorizontal,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
-import { CLIENTES_MOCK, Cliente } from '../../mock/mockData';
+import { Cliente } from '../../types/domain';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,6 +23,11 @@ interface AppLayoutProps {
   setActiveView: (view: string) => void;
   clienteSelecionado: Cliente;
   setClienteSelecionado: (cliente: Cliente) => void;
+  clientes: Cliente[];
+  canAdmin: boolean;
+  onLogout: () => void;
+  canOperate: boolean;
+  canBilling: boolean;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -31,6 +38,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   setActiveView,
   clienteSelecionado,
   setClienteSelecionado,
+  clientes,
+  canAdmin,
+  onLogout,
+  canOperate,
+  canBilling,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -38,15 +50,17 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'dashboard', label: 'Dashboard de Horas', icon: Clock },
     { id: 'kanban', label: 'Quadro de Projetos', icon: Kanban },
     { id: 'faturas', label: 'Fechamento & Faturas', icon: FileText },
+    { id: 'despesas', label: 'Despesas', icon: Receipt },
   ];
 
   const menuFlow = [
     { id: 'entrada_docs', label: 'Cockpit de Entrada', icon: FileSpreadsheet },
     { id: 'fila_pagamentos', label: 'Fila de Pagamentos', icon: Briefcase },
     { id: 'plano_contas', label: 'Plano de Contas', icon: SlidersHorizontal },
+    { id: 'admin', label: 'Administração', icon: Settings },
   ];
 
-  const currentMenu = activeModule === 'advisory' ? menuAdvisory : menuFlow;
+  const currentMenu = (activeModule === 'advisory' ? menuAdvisory : menuFlow).filter(item => (item.id !== 'admin' || canAdmin) && (item.id !== 'despesas' || canOperate) && (item.id !== 'faturas' || canBilling));
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
@@ -68,6 +82,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
             className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -126,14 +141,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </label>
             <div className="relative">
               <select
+                aria-label="Cliente em foco"
                 value={clienteSelecionado.id}
                 onChange={(e) => {
-                  const c = CLIENTES_MOCK.find(item => item.id === Number(e.target.value));
+                  const c = clientes.find(item => item.id === Number(e.target.value));
                   if (c) setClienteSelecionado(c);
                 }}
                 className="w-full bg-slate-800 border border-slate-700 text-xs rounded-md py-1.5 pl-2 pr-7 text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none truncate"
               >
-                {CLIENTES_MOCK.map((c) => (
+                {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nomeFantasia}
                   </option>
@@ -181,7 +197,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             )}
           </div>
           {sidebarOpen && (
-            <button className="text-slate-500 hover:text-red-400 transition" title="Sair">
+            <button onClick={onLogout} className="text-slate-500 hover:text-red-400 transition" title="Sair">
               <LogOut size={16} />
             </button>
           )}
