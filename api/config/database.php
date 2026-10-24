@@ -4,11 +4,13 @@ function database(): PDO {
     static $pdo;
     if ($pdo instanceof PDO) return $pdo;
 
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $port = getenv('DB_PORT') ?: '3306';
-    $name = getenv('DB_NAME');
-    $user = getenv('DB_USER');
+    $local = is_file(__DIR__.'/database.local.php') ? require __DIR__.'/database.local.php' : [];
+    $host = getenv('DB_HOST') ?: ($local['host'] ?? 'localhost');
+    $port = getenv('DB_PORT') ?: ($local['port'] ?? '3306');
+    $name = getenv('DB_NAME') ?: ($local['name'] ?? null);
+    $user = getenv('DB_USER') ?: ($local['user'] ?? null);
     $password = getenv('DB_PASSWORD');
+    if ($password === false || $password === '') $password = $local['password'] ?? null;
     if (!$name || !$user || $password === false || $password === '') {
         throw new RuntimeException('Configure DB_NAME, DB_USER e DB_PASSWORD no ambiente do servidor.');
     }
