@@ -1,5 +1,5 @@
 -- Thera Workspace: estruturas auxiliares de autenticação e aprovação
--- Baseado no DDL exportado do banco u630316951_app em 2026-10-24.
+-- Baseado no DDL exportado do banco do Workspace em 2026-10-24.
 -- IDs INT(11) assinados para compatibilidade com as PKs existentes.
 -- Este arquivo é aditivo: não apaga tabelas, colunas ou registros.
 -- Faça backup e teste em cópia antes de executar. Execute uma única vez.
