@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import { CheckCircle2, Download, FileUp, LoaderCircle, RefreshCw } from 'lucide-react';
 import { flowService, type Documento, type Destino } from '../../services/flowService';
 import { ApiError } from '../../services/apiClient';
-import type { Cliente } from '../../mock/mockData';
+import type { Cliente } from '../../types/domain';
 
 type FlowViewProps = { view: string; cliente: Cliente };
 const statusLabel: Record<string, string> = { pendente_aprovacao: 'Pendente de aprovação', aprovado: 'Aprovado' };
