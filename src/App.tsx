@@ -1,6 +1,7 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle, LockKeyhole, Sparkles } from 'lucide-react';
 import { AppLayout } from './components/layout/AppLayout';
+import { FaturamentoView } from './components/advisory/FaturamentoView';
 import { KanbanView } from './components/advisory/KanbanView';
 import { TimesheetView } from './components/advisory/TimesheetView';
 import { WorkspaceView } from './components/flow/WorkspaceView';
@@ -38,7 +39,7 @@ export function App() {
   if (loadingClientes) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>;
   if (!clienteSelecionado) return <div className="flex min-h-screen items-center justify-center text-slate-500"><p className="text-sm">Nenhum cliente vinculado à sua conta.</p></div>;
   const activeModule = module === 'workspace' ? 'flow' : 'advisory';
-  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clientes={clientes} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado} avisoClientesMock={usandoMock}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'dashboard' ? <TimesheetView cliente={clienteSelecionado} /> : module === 'workspace' && activeView === 'entrada_docs' ? <WorkspaceView cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
+  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clientes={clientes} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado} avisoClientesMock={usandoMock}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'dashboard' ? <TimesheetView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'faturas' ? <FaturamentoView cliente={clienteSelecionado} /> : module === 'workspace' && activeView === 'entrada_docs' ? <WorkspaceView cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
 }
 
 export default App;
