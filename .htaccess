@@ -1,0 +1,13 @@
+# SPA fallback do Thera Workspace no Apache/Hostinger
+RewriteEngine On
+
+# A API PHP deve continuar sendo processada pelo servidor.
+RewriteRule ^api/ - [L]
+
+# Arquivos e diretórios reais não passam pelo fallback.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Rotas React (por exemplo /workspace e /advisory) usam a entrada da SPA.
+RewriteRule ^ index.html [L]

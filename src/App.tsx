@@ -1,9 +1,15 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle, LockKeyhole, Sparkles } from 'lucide-react';
 import { AppLayout } from './components/layout/AppLayout';
-import { KanbanView } from './components/advisory/KanbanView';
-import { CLIENTES_MOCK, Cliente } from './mock/mockData';
+import { AdvisoryDashboard } from './components/advisory/AdvisoryDashboard';
+import { FaturasView } from './components/advisory/FaturasView';
+import { LiveKanbanView } from './components/advisory/LiveKanbanView';
+import { DespesasView } from './components/advisory/DespesasView';
+import { FlowView } from './components/flow/FlowView';
+import { AdminView } from './components/admin/AdminView';
+import type { Cliente } from './types/domain';
 import { authService } from './services/authService';
+import { adminService } from './services/adminService';
 import { ApiError, type Usuario } from './services/apiClient';
 
 type Module = 'workspace' | 'advisory';
@@ -20,11 +26,13 @@ function LoginPage({ module, onLogin }: { module: Module; onLogin: (user: Usuari
 
 export function App() {
   const module: Module | null = window.location.pathname.startsWith('/workspace') ? 'workspace' : window.location.pathname.startsWith('/advisory') ? 'advisory' : null;
-  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente>(CLIENTES_MOCK[0]); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
+  const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [clientes, setClientes] = useState<Cliente[]>([]); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null); const [clientError, setClientError] = useState(''); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
   useEffect(() => { if (module) authService.current().then(setUser).catch(() => setUser(null)).finally(() => setChecking(false)); }, [module]);
-  if (!module) return <LandingPage />; if (checking) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>; if (!user) return <LoginPage module={module} onLogin={setUser} />;
+  useEffect(() => { const syncSession = () => setUser(authService.getSession()?.usuario || null); window.addEventListener('thera:session', syncSession); return () => window.removeEventListener('thera:session', syncSession); }, []);
+  useEffect(() => { if (user?.perfil === 'bpo_adm') adminService.clientes().then(items => { if (items.length) { setClientes(items); setClienteSelecionado(items[0]); } }).catch(cause => setClientError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar os clientes.')); else if (user?.perfil === 'bpo_operador') adminService.clientesOperacao().then(items => { if (items.length) { setClientes(items); setClienteSelecionado(items[0]); } }).catch(cause => setClientError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar os clientes.')); else if (user?.cliente_id) adminService.clienteAtual(user.cliente_id).then(item => { setClientes([item]); setClienteSelecionado(item); }).catch(cause => setClientError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar o cliente.')); }, [user?.perfil, user?.cliente_id]);
+  if (!module) return <LandingPage />; if (checking) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>; if (!user) return <LoginPage module={module} onLogin={setUser} />; if (!clienteSelecionado) return <div className="flex min-h-screen items-center justify-center"><div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">{clientError ? <p role="alert" className="text-sm text-red-700">{clientError}</p> : <p className="flex items-center gap-2 text-slate-500"><LoaderCircle className="animate-spin" /> Carregando clientes autorizados...</p>}</div></div>;
   const activeModule = module === 'workspace' ? 'flow' : 'advisory';
-  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado}>{module === 'advisory' && activeView === 'kanban' ? <KanbanView cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
+  return <AppLayout activeModule={activeModule} setActiveModule={next => { window.location.href = next === 'flow' ? '/workspace' : '/advisory'; }} activeView={activeView} setActiveView={setActiveView} clienteSelecionado={clienteSelecionado} setClienteSelecionado={setClienteSelecionado} clientes={clientes} canAdmin={user.perfil === 'bpo_adm'} onLogout={async () => { try { await authService.logout(); } finally { setUser(null); } }} canOperate={user.perfil === 'bpo_adm' || user.perfil === 'bpo_operador'} canBilling={user.perfil === 'bpo_adm'}>{module === 'advisory' && activeView === 'kanban' ? <LiveKanbanView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'dashboard' ? <AdvisoryDashboard cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'faturas' && user.perfil === 'bpo_adm' ? <FaturasView cliente={clienteSelecionado} /> : module === 'advisory' && activeView === 'despesas' ? <DespesasView cliente={clienteSelecionado} /> : module === 'workspace' && activeView === 'admin' && user.perfil === 'bpo_adm' ? <AdminView /> : module === 'workspace' ? <FlowView view={activeView} cliente={clienteSelecionado} /> : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><h3 className="font-semibold text-slate-800">Módulo em desenvolvimento</h3><p className="mt-1 text-sm text-slate-500">Visualização: {activeView}</p></div>}</AppLayout>;
 }
 
 export default App;

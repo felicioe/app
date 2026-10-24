@@ -1,0 +1,7 @@
+# SPA fallback do Thera Workspace no Apache/Hostinger
+RewriteEngine On
+RewriteRule ^api/ - [L]
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^ index.html [L]
