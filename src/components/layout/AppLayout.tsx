@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   LogOut
 } from 'lucide-react';
-import { CLIENTES_MOCK, Cliente } from '../../mock/mockData';
+import { Cliente } from '../../mock/mockData';
 import { authService } from '../../services/authService';
 
 interface AppLayoutProps {
@@ -20,8 +20,10 @@ interface AppLayoutProps {
   setActiveModule: (module: 'advisory' | 'flow') => void;
   activeView: string;
   setActiveView: (view: string) => void;
+  clientes: Cliente[];
   clienteSelecionado: Cliente;
   setClienteSelecionado: (cliente: Cliente) => void;
+  avisoClientesMock?: boolean;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -30,8 +32,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   setActiveModule,
   activeView,
   setActiveView,
+  clientes,
   clienteSelecionado,
   setClienteSelecionado,
+  avisoClientesMock,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -129,12 +133,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <select
                 value={clienteSelecionado.id}
                 onChange={(e) => {
-                  const c = CLIENTES_MOCK.find(item => item.id === Number(e.target.value));
+                  const c = clientes.find(item => item.id === Number(e.target.value));
                   if (c) setClienteSelecionado(c);
                 }}
                 className="w-full bg-slate-800 border border-slate-700 text-xs rounded-md py-1.5 pl-2 pr-7 text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none truncate"
               >
-                {CLIENTES_MOCK.map((c) => (
+                {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nomeFantasia}
                   </option>
@@ -200,6 +204,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {avisoClientesMock && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Não foi possível carregar os clientes reais da API; exibindo dados de exemplo.">
+                Clientes de exemplo
+              </span>
+            )}
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
               activeModule === 'advisory' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
             }`}>
