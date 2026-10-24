@@ -16,6 +16,10 @@ if ($tipo === 'fornecedores') {
     respond(query('SELECT id,nome FROM fornecedores WHERE cliente_id=? ORDER BY nome LIMIT 500', [$client])->fetchAll());
 }
 if ($tipo === 'plano_contas') {
-    respond(query("SELECT id,codigo,descricao FROM plano_contas WHERE cliente_id=? AND tipo='analitica' ORDER BY codigo LIMIT 1000", [$client])->fetchAll());
+    $todos = !empty($_GET['todos']);
+    $sql = $todos
+        ? 'SELECT id,codigo,descricao,tipo FROM plano_contas WHERE cliente_id=?'
+        : "SELECT id,codigo,descricao FROM plano_contas WHERE cliente_id=? AND tipo='analitica'";
+    respond(query($sql.' ORDER BY codigo LIMIT 1000', [$client])->fetchAll());
 }
 respond(query('SELECT id,codigo,descricao FROM centros_custo WHERE cliente_id=? ORDER BY codigo LIMIT 1000', [$client])->fetchAll());
