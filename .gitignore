@@ -6,3 +6,5 @@ dist/
 .DS_Store
 npm-debug.log*
 api/config/database.local.php
+api/storage/uploads/*
+!api/storage/uploads/.htaccess
