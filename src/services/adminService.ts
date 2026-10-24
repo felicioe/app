@@ -12,6 +12,7 @@ export const adminService = {
     const items = await apiClient<ClienteApi[]>('admin/clientes.php');
     return items.map(mapCliente);
   },
+  async clientesOperacao(): Promise<Cliente[]> { const items = await apiClient<ClienteApi[]>('flow/clientes.php'); return items.map(mapCliente); },
   async clienteAtual(id: number): Promise<Cliente> { return mapCliente(await apiClient<ClienteApi>(`flow/cliente.php?cliente_id=${id}`)); },
   async usuarios(): Promise<UsuarioAdmin[]> { return apiClient<UsuarioAdmin[]>('admin/usuarios.php'); },
   async criarCliente(data: { nome: string; tipo_cobranca: string }): Promise<{ id: number }> { return apiClient<{ id: number }>('admin/clientes.php', { method: 'POST', body: JSON.stringify(data) }); },
