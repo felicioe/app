@@ -5,6 +5,7 @@ export type Destino = 'plano_contas' | 'centros_custo';
 export const flowService = {
   documentos: (cliente_id: number, filtros: { inicio?: string; fim?: string; status?: string } = {}) => apiClient<Documento[]>(`flow/documentos.php?${params({ cliente_id, ...filtros })}`),
   criarDocumento: (data: FormData) => apiClient<{ id: number; status: string }>('flow/documentos.php', { method: 'POST', body: data }),
+  regras: (cliente_id: number) => apiClient<{ id: number; etapa: number; valor_minimo: string; valor_maximo: string; tipo_aprovacao: string; aprovadores_necessarios: number }[]>(`flow/alcadas.php?${params({ cliente_id })}`),
   aprovar: (cliente_id: number, documento_id: number) => apiClient<{ id: number; status: string }>('flow/alcadas.php', { method: 'POST', body: JSON.stringify({ cliente_id, documento_id }) }),
   importar: (cliente_id: number, destino: Destino, linhas: LinhaImportacao[]) => apiClient<{ inseridos: number }>('flow/importador_contas.php', { method: 'POST', body: JSON.stringify({ cliente_id, destino, linhas }) }),
   importarArquivo: (cliente_id: number, destino: Destino, arquivo: File, mapeamento: Record<string, string>) => {
