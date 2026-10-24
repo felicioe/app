@@ -24,6 +24,7 @@ interface AppLayoutProps {
   setClienteSelecionado: (cliente: Cliente) => void;
   clientes: Cliente[];
   canAdmin: boolean;
+  onLogout: () => void;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -36,6 +37,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   setClienteSelecionado,
   clientes,
   canAdmin,
+  onLogout,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -187,7 +189,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             )}
           </div>
           {sidebarOpen && (
-            <button className="text-slate-500 hover:text-red-400 transition" title="Sair">
+            <button onClick={onLogout} className="text-slate-500 hover:text-red-400 transition" title="Sair">
               <LogOut size={16} />
             </button>
           )}
