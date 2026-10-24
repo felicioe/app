@@ -6,7 +6,11 @@ set_exception_handler(function(Throwable $e): void {
     error_log((string)$e); respond(null, 500, 'Erro interno. Consulte o administrador.');
 });
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed = array_filter(array_map('trim', explode(',', getenv('CORS_ORIGINS') ?: 'https://app.therafinancial.com.br')));
+$configuredOrigins = getenv('CORS_ORIGINS') ?: '';
+$allowed = array_values(array_unique(array_filter(array_merge(
+    ['https://www.therafinancial.com.br', 'https://app.therafinancial.com.br'],
+    array_map('trim', explode(',', $configuredOrigins))
+))));
 if ($origin !== '' && !in_array($origin, $allowed, true)) throw new HttpError(403, 'Origem não permitida.');
 if ($origin !== '') { header('Access-Control-Allow-Origin: '.$origin); header('Vary: Origin'); }
 header('Access-Control-Allow-Headers: Authorization, Content-Type');
