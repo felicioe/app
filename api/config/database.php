@@ -6,7 +6,7 @@ function database(): PDO {
 
     $local = is_file(__DIR__.'/database.local.php') ? require __DIR__.'/database.local.php' : [];
     $env = [];
-    foreach ([__DIR__.'/../../.env', __DIR__.'/../../../.env', '/home/u630316951/hbuilds/config/.env'] as $envFile) {
+    foreach ([__DIR__.'/../../.env', __DIR__.'/../../../.env', '/home/u630316951/hbuilds/config/.env', '/home/u630316951/domains/therafinancial.com.br/hbuilds/config/.env', '/home/u630316951/domains/therafinancial.com.br/.env'] as $envFile) {
         if (!is_file($envFile)) continue;
         foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
             if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
