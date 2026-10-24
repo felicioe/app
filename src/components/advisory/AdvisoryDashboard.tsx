@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { advisoryService, type Apontamento, type Projeto } from '../../services/advisoryService';
-import type { Cliente } from '../../mock/mockData';
+import type { Cliente } from '../../types/domain';
 import { ApiError } from '../../services/apiClient';
 
 export const AdvisoryDashboard: React.FC<{ cliente: Cliente }> = ({ cliente }) => {
