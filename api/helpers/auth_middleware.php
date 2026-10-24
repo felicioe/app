@@ -16,7 +16,9 @@ function tenant(array $user, mixed $requested = null): int {
 }
 function owned(string $table, int $id, int $client): array {
     if (!in_array($table,['projetos_consultoria','tarefas_kanban','documentos_pagar'], true)) throw new LogicException('Tabela inválida');
-    $row = query("SELECT * FROM $table WHERE id=? AND cliente_id=?",[$id,$client])->fetch();
+    $row = $table === 'tarefas_kanban'
+        ? query('SELECT t.* FROM tarefas_kanban t JOIN projetos_consultoria p ON p.id=t.projeto_id WHERE t.id=? AND p.cliente_id=?',[$id,$client])->fetch()
+        : query("SELECT * FROM $table WHERE id=? AND cliente_id=?",[$id,$client])->fetch();
     if (!$row) throw new HttpError(404,'Registro não encontrado.');
     return $row;
 }

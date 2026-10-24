@@ -10,7 +10,7 @@ final class BillingService {
     public static function calculate(array $client, int $minutes, int $expenses): array {
         $rate=self::cents($client['valor_hora_padrao']); $fixed=self::cents($client['valor_mensalidade_fixa']);
         $allowance=(int)round((float)$client['franquia_horas']*60);
-        $base=match($client['tipo_cobranca']) {
+        $base=match($client['tipo_cobranca'] ?? $client['tipo_cobranca_padrao'] ?? null) {
             'hora'=>(int)round($minutes*$rate/60),
             'fechado'=>$fixed,
             'misto'=>$fixed+(int)round(max(0,$minutes-$allowance)*$rate/60),
