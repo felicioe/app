@@ -13,4 +13,6 @@ assert.ok(layout.includes("item.id !== 'admin' || canAdmin"), 'menu administrati
 assert.ok(layout.includes("item.id !== 'despesas' || canOperate"), 'menu de despesas sem restrição');
 assert.ok(layout.includes("item.id !== 'faturas' || canBilling"), 'menu de faturas sem restrição');
 assert.ok(!app.includes('CLIENTES_MOCK'), 'App ainda depende de clientes mockados');
+assert.ok(app.includes("activeView === 'admin' && user.perfil === 'bpo_adm'"), 'guard da administracao ausente');
+assert.ok(app.includes("activeView === 'faturas' && user.perfil === 'bpo_adm'"), 'guard de faturamento ausente');
 console.log('Frontend contract checks passed.');
