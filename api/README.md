@@ -1,6 +1,6 @@
 # Thera Workspace — API
 
-Implementação PHP 8.1+ sem framework para a API do Thera Workspace. O frontend React/Vite fica em `src/` e é mantido pelo Lovable; a API PHP em `api/` é mantida por Claude/Codex. A aplicação é publicada exclusivamente em `app.therafinancial.com.br`; o site institucional e o Krieger possuem repositórios e deployments separados.
+Implementação PHP 8.1+ sem framework para a API do Thera Workspace. O frontend React/Vite e a API PHP/PDO são mantidos diretamente no repositório oficial. A aplicação é publicada exclusivamente em `app.therafinancial.com.br`; o site institucional e o Krieger possuem repositórios e deployments separados.
 
 ## Banco e instalação
 
