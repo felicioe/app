@@ -11,4 +11,5 @@ for (const endpoint of ['flow/documentos.php', 'flow/alcadas.php', 'flow/notific
 for (const endpoint of ['advisory/timesheet.php', 'advisory/kanban.php', 'advisory/despesas.php', 'advisory/faturamento.php']) assert.ok(advisory.includes(endpoint), 'endpoint Advisory ausente: ' + endpoint);
 assert.ok(layout.includes("item.id !== 'admin' || canAdmin"), 'menu administrativo sem restrição');
 assert.ok(layout.includes("item.id !== 'despesas' || canOperate"), 'menu de despesas sem restrição');
+assert.ok(!app.includes('CLIENTES_MOCK'), 'App ainda depende de clientes mockados');
 console.log('Frontend contract checks passed.');
