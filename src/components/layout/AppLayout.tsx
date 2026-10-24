@@ -13,7 +13,7 @@ import {
   LogOut,
   Settings
 } from 'lucide-react';
-import { Cliente } from '../../mock/mockData';
+import { Cliente } from '../../types/domain';
 
 interface AppLayoutProps {
   children: React.ReactNode;
