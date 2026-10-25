@@ -25,10 +25,11 @@ final class BillingService {
             if (!$client) throw new HttpError(404,'Cliente não encontrado.');
             $exists=query('SELECT id FROM faturas_honorarios WHERE cliente_id=? AND periodo_inicio<=? AND periodo_fim>=?',[$clientId,$end,$start])->fetch();
             if ($exists) throw new HttpError(409,'Período já faturado ou sobreposto.');
-            $entries=query("SELECT id,duracao_minutos FROM apontamentos_horas WHERE cliente_id=? AND data BETWEEN ? AND ? AND faturavel=1 AND status_faturamento='pendente' FOR UPDATE",[$clientId,$start,$end])->fetchAll();
-            $expenses=query('SELECT id,valor FROM despesas_adicionais WHERE cliente_id=? AND data BETWEEN ? AND ? AND reembolsavel=1 AND fatura_id IS NULL FOR UPDATE',[$clientId,$start,$end])->fetchAll();
+            $entries=query("SELECT id,duracao_minutos FROM apontamentos_horas WHERE cliente_id=? AND data_registro BETWEEN ? AND ? AND faturavel=1 AND status_faturamento='pendente' FOR UPDATE",[$clientId,$start,$end])->fetchAll();
+            $expenses=query('SELECT id,valor FROM despesas_adicionais WHERE cliente_id=? AND data_despesa BETWEEN ? AND ? AND reembolsavel=1 AND fatura_id IS NULL FOR UPDATE',[$clientId,$start,$end])->fetchAll();
             $total=self::calculate($client,array_sum(array_column($entries,'duracao_minutos')),array_sum(array_map(fn($e)=>self::cents($e['valor']),$expenses)));
-            query('INSERT INTO faturas_honorarios (cliente_id,periodo_inicio,periodo_fim,total_minutos,valor_honorarios,valor_despesas,valor_total) VALUES (?,?,?,?,?,?,?)',[$clientId,$start,$end,$total['minutos'],self::decimal($total['honorarios_centavos']),self::decimal($total['despesas_centavos']),self::decimal($total['total_centavos'])]);
+            $codigo='FAT-'.$clientId.'-'.str_replace('-','',$start).'-'.str_replace('-','',$end);
+            query("INSERT INTO faturas_honorarios (cliente_id,codigo_fatura,periodo_inicio,periodo_fim,total_horas_minutos,valor_servicos,valor_despesas_reembolsadas,valor_total,status) VALUES (?,?,?,?,?,?,?,?,'emitida')",[$clientId,$codigo,$start,$end,$total['minutos'],self::decimal($total['honorarios_centavos']),self::decimal($total['despesas_centavos']),self::decimal($total['total_centavos'])]);
             $id=(int)database()->lastInsertId();
             foreach ($entries as $entry) query("UPDATE apontamentos_horas SET status_faturamento='faturado',fatura_id=? WHERE id=?",[$id,$entry['id']]);
             if ($client['permite_reembolso_despesas']) foreach ($expenses as $expense) query('UPDATE despesas_adicionais SET fatura_id=? WHERE id=?',[$id,$expense['id']]);

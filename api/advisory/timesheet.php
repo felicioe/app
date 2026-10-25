@@ -4,7 +4,7 @@ $method=method(['GET','POST']); $user=authenticate(); $data=$method==='POST'?inp
 if ($method==='GET') {
     $start=validDate($data['inicio']??date('Y-m-01')); $end=validDate($data['fim']??date('Y-m-t'));
     if ($end<$start) throw new HttpError(422,'Período inválido.');
-    $rows=query('SELECT * FROM apontamentos_horas WHERE cliente_id=? AND data_registro BETWEEN ? AND ? ORDER BY data_registro DESC,id DESC LIMIT 2000',[$client,$start,$end])->fetchAll();
+    $rows=query('SELECT id,tarefa_id,cliente_id,usuario_id,data_registro AS data,hora_inicio,hora_fim,duracao_minutos,descricao,faturavel,status_faturamento,fatura_id FROM apontamentos_horas WHERE cliente_id=? AND data_registro BETWEEN ? AND ? ORDER BY data_registro DESC,id DESC LIMIT 2000',[$client,$start,$end])->fetchAll();
     $sum=query('SELECT COALESCE(SUM(duracao_minutos),0) AS minutos FROM apontamentos_horas WHERE cliente_id=? AND data_registro BETWEEN ? AND ?',[$client,$start,$end])->fetch();
     respond(['apontamentos'=>$rows,'total_minutos'=>(int)$sum['minutos']]);
 }

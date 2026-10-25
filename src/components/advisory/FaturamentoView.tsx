@@ -15,7 +15,7 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
   const [fechando, setFechando] = useState(false);
   const [enviandoDespesa, setEnviandoDespesa] = useState(false);
   const [periodo, setPeriodo] = useState({ inicio: '', fim: '' });
-  const [despesaForm, setDespesaForm] = useState({ data: new Date().toISOString().slice(0, 10), descricao: '', valor: '', reembolsavel: false });
+  const [despesaForm, setDespesaForm] = useState({ tipo: '', data: new Date().toISOString().slice(0, 10), descricao: '', valor: '', reembolsavel: false });
 
   const load = () => {
     setLoading(true);
@@ -49,7 +49,7 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
     setError('');
     try {
       await advisoryService.registrarDespesa({ cliente_id: cliente.id, ...despesaForm });
-      setDespesaForm({ data: new Date().toISOString().slice(0, 10), descricao: '', valor: '', reembolsavel: false });
+      setDespesaForm({ tipo: '', data: new Date().toISOString().slice(0, 10), descricao: '', valor: '', reembolsavel: false });
       load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível registrar a despesa.');
@@ -107,9 +107,9 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
               {faturas.map((fatura) => (
                 <tr key={fatura.id}>
                   <td className="px-5 py-4">{fatura.periodo_inicio} – {fatura.periodo_fim}</td>
-                  <td className="px-5 py-4">{fatura.total_minutos} min</td>
-                  <td className="px-5 py-4 font-mono">R$ {formatarReal(fatura.valor_honorarios)}</td>
-                  <td className="px-5 py-4 font-mono">R$ {formatarReal(fatura.valor_despesas)}</td>
+                  <td className="px-5 py-4">{fatura.total_horas_minutos} min</td>
+                  <td className="px-5 py-4 font-mono">R$ {formatarReal(fatura.valor_servicos)}</td>
+                  <td className="px-5 py-4 font-mono">R$ {formatarReal(fatura.valor_despesas_reembolsadas)}</td>
                   <td className="px-5 py-4 font-mono font-semibold">R$ {formatarReal(fatura.valor_total)}</td>
                 </tr>
               ))}
@@ -119,6 +119,15 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
       </div>
 
       <form onSubmit={registrarDespesa} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-4">
+        <label className="text-xs font-medium text-slate-700">
+          Tipo
+          <input required list="tipos-despesa" value={despesaForm.tipo} onChange={(e) => setDespesaForm({ ...despesaForm, tipo: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          <datalist id="tipos-despesa">
+            <option value="deslocamento" />
+            <option value="hospedagem" />
+            <option value="alimentacao" />
+          </datalist>
+        </label>
         <label className="text-xs font-medium text-slate-700">
           Data
           <input required type="date" value={despesaForm.data} onChange={(e) => setDespesaForm({ ...despesaForm, data: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
@@ -135,11 +144,12 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
           <input type="checkbox" checked={despesaForm.reembolsavel} onChange={(e) => setDespesaForm({ ...despesaForm, reembolsavel: e.target.checked })} />
           Reembolsável ao cliente
         </label>
-        <div className="flex items-end md:col-span-2">
+        <div className="flex items-end md:col-span-1">
           <button disabled={enviandoDespesa} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
-            {enviandoDespesa ? <LoaderCircle size={16} className="animate-spin" /> : <Plus size={16} />} Registrar despesa
+            {enviandoDespesa ? <LoaderCircle size={16} className="animate-spin" /> : <Plus size={16} />} Registrar
           </button>
         </div>
+        <p className="text-xs text-slate-400 md:col-span-4">Informe o tipo exatamente como cadastrado no sistema (ex.: deslocamento, hospedagem, alimentacao). Lista sujeita a confirmação — se o tipo não existir, a API retorna erro.</p>
       </form>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -152,6 +162,7 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-5 py-3">Data</th>
+                <th className="px-5 py-3">Tipo</th>
                 <th className="px-5 py-3">Descrição</th>
                 <th className="px-5 py-3">Valor</th>
                 <th className="px-5 py-3">Reembolsável</th>
@@ -162,6 +173,7 @@ export function FaturamentoView({ cliente }: { cliente: Cliente }) {
               {despesas.map((despesa) => (
                 <tr key={despesa.id}>
                   <td className="px-5 py-4">{despesa.data}</td>
+                  <td className="px-5 py-4 capitalize">{despesa.tipo}</td>
                   <td className="px-5 py-4 flex items-center gap-2"><ReceiptText size={14} className="text-slate-400" /> {despesa.descricao}</td>
                   <td className="px-5 py-4 font-mono">R$ {Number(despesa.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                   <td className="px-5 py-4">{Number(despesa.reembolsavel) === 1 ? 'Sim' : 'Não'}</td>

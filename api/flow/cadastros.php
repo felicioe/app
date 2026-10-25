@@ -6,14 +6,13 @@ $tipo = required($_GET, 'tipo');
 $permitidos = ['fornecedores', 'tipos_documento', 'plano_contas', 'centros_custo'];
 if (!in_array($tipo, $permitidos, true)) throw new HttpError(422, 'Cadastro inválido.');
 
-if ($tipo === 'tipos_documento') {
-    respond(query('SELECT id,nome FROM tipos_documento ORDER BY nome LIMIT 500')->fetchAll());
-}
-
 $client = tenant($user, $_GET['cliente_id'] ?? null);
 
+if ($tipo === 'tipos_documento') {
+    respond(query('SELECT id,nome FROM tipos_documento WHERE cliente_id=? ORDER BY nome LIMIT 500', [$client])->fetchAll());
+}
 if ($tipo === 'fornecedores') {
-    respond(query('SELECT id,nome FROM fornecedores WHERE cliente_id=? ORDER BY nome LIMIT 500', [$client])->fetchAll());
+    respond(query('SELECT id,razao_social AS nome FROM fornecedores WHERE cliente_id=? ORDER BY razao_social LIMIT 500', [$client])->fetchAll());
 }
 if ($tipo === 'plano_contas') {
     $todos = !empty($_GET['todos']);

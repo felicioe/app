@@ -3,8 +3,8 @@ export interface Apontamento { id: number; projeto_id: number; tarefa_id: number
 export interface Projeto { id: number; nome: string }
 export interface Tarefa { id: number; projeto_id: number; titulo: string; status: 'pendente' | 'em_andamento' | 'concluida' }
 export interface Fechamento { id: number; minutos: number; honorarios_centavos: number; despesas_centavos: number; total_centavos: number }
-export interface Fatura { id: number; periodo_inicio: string; periodo_fim: string; total_minutos: number; valor_honorarios: string; valor_despesas: string; valor_total: string }
-export interface Despesa { id: number; data: string; descricao: string; valor: string; reembolsavel: 0 | 1; fatura_id: number | null }
+export interface Fatura { id: number; codigo_fatura: string; periodo_inicio: string; periodo_fim: string; total_horas_minutos: number; valor_servicos: string; valor_despesas_reembolsadas: string; valor_total: string; status: 'rascunho' | 'emitida' | 'paga' }
+export interface Despesa { id: number; tipo: string; data: string; descricao: string; valor: string; reembolsavel: 0 | 1; fatura_id: number | null }
 export const advisoryService = {
   timesheet: (cliente_id: number, inicio?: string, fim?: string) => apiClient<{ apontamentos: Apontamento[]; total_minutos: number }>(`advisory/timesheet.php?${params({ cliente_id, inicio, fim })}`),
   apontar: (data: { cliente_id: number; tarefa_id: number; data: string; hora_inicio: string; hora_fim: string; descricao?: string; faturavel?: boolean }) => apiClient<{ id: number; duracao_minutos: number }>('advisory/timesheet.php', { method: 'POST', body: JSON.stringify(data) }),
@@ -14,5 +14,5 @@ export const advisoryService = {
   faturas: (cliente_id: number) => apiClient<Fatura[]>(`advisory/faturamento.php?${params({ cliente_id })}`),
   fechar: (cliente_id: number, inicio: string, fim: string) => apiClient<Fechamento>('advisory/faturamento.php', { method: 'POST', body: JSON.stringify({ cliente_id, inicio, fim }) }),
   despesas: (cliente_id: number) => apiClient<Despesa[]>(`advisory/despesas.php?${params({ cliente_id })}`),
-  registrarDespesa: (data: { cliente_id: number; data: string; descricao: string; valor: string; reembolsavel: boolean }) => apiClient<{ id: number }>('advisory/despesas.php', { method: 'POST', body: JSON.stringify(data) }),
+  registrarDespesa: (data: { cliente_id: number; tipo: string; data: string; descricao: string; valor: string; reembolsavel: boolean }) => apiClient<{ id: number }>('advisory/despesas.php', { method: 'POST', body: JSON.stringify(data) }),
 };
