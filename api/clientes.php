@@ -38,7 +38,8 @@ $data = input();
 $razaoSocial = required($data, 'razaoSocial');
 if (strlen($razaoSocial) > 255) throw new HttpError(422, 'Razão social muito longa.');
 $nomeFantasia = isset($data['nomeFantasia']) && trim((string) $data['nomeFantasia']) !== '' ? trim((string) $data['nomeFantasia']) : null;
-$cnpjCpf = isset($data['cnpjCpf']) && trim((string) $data['cnpjCpf']) !== '' ? trim((string) $data['cnpjCpf']) : null;
+$cnpjCpf = required($data, 'cnpjCpf');
+if (strlen($cnpjCpf) > 20) throw new HttpError(422, 'CNPJ/CPF muito longo.');
 $emailContato = isset($data['emailContato']) && trim((string) $data['emailContato']) !== '' ? trim((string) $data['emailContato']) : null;
 $telefone = isset($data['telefone']) && trim((string) $data['telefone']) !== '' ? trim((string) $data['telefone']) : null;
 $tipoCobranca = $data['tipoCobranca'] ?? 'hora';
@@ -50,23 +51,33 @@ if ($franquiaHoras === false || $franquiaHoras < 0) throw new HttpError(422, 'Fr
 $reembolso = ($data['permiteReembolsoDespesas'] ?? true) ? 1 : 0;
 
 if ($method === 'POST') {
-    $id = transaction(function () use ($razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso) {
-        query(
-            'INSERT INTO clientes (razao_social,nome_fantasia,cnpj_cpf,email_contato,telefone,tipo_cobranca_padrao,valor_hora_padrao,valor_mensalidade_fixa,franquia_horas,permite_reembolso_despesas,ativo) VALUES (?,?,?,?,?,?,?,?,?,?,1)',
-            [$razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso]
-        );
-        return (int) database()->lastInsertId();
-    });
+    try {
+        $id = transaction(function () use ($razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso) {
+            query(
+                'INSERT INTO clientes (razao_social,nome_fantasia,cnpj_cpf,email_contato,telefone,tipo_cobranca_padrao,valor_hora_padrao,valor_mensalidade_fixa,franquia_horas,permite_reembolso_despesas,ativo) VALUES (?,?,?,?,?,?,?,?,?,?,1)',
+                [$razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso]
+            );
+            return (int) database()->lastInsertId();
+        });
+    } catch (PDOException $e) {
+        if ($e->getCode() === '23000') throw new HttpError(409, 'Já existe um cliente cadastrado com esse CNPJ/CPF.');
+        throw $e;
+    }
     respond(['id' => $id], 201);
 }
 
 $id = positiveId($data['id'] ?? null);
 $ativo = ($data['ativo'] ?? true) ? 1 : 0;
-transaction(function () use ($id, $razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso, $ativo) {
-    if (!query('SELECT id FROM clientes WHERE id=? FOR UPDATE', [$id])->fetch()) throw new HttpError(404, 'Cliente não encontrado.');
-    query(
-        'UPDATE clientes SET razao_social=?,nome_fantasia=?,cnpj_cpf=?,email_contato=?,telefone=?,tipo_cobranca_padrao=?,valor_hora_padrao=?,valor_mensalidade_fixa=?,franquia_horas=?,permite_reembolso_despesas=?,ativo=? WHERE id=?',
-        [$razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso, $ativo, $id]
-    );
-});
+try {
+    transaction(function () use ($id, $razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso, $ativo) {
+        if (!query('SELECT id FROM clientes WHERE id=? FOR UPDATE', [$id])->fetch()) throw new HttpError(404, 'Cliente não encontrado.');
+        query(
+            'UPDATE clientes SET razao_social=?,nome_fantasia=?,cnpj_cpf=?,email_contato=?,telefone=?,tipo_cobranca_padrao=?,valor_hora_padrao=?,valor_mensalidade_fixa=?,franquia_horas=?,permite_reembolso_despesas=?,ativo=? WHERE id=?',
+            [$razaoSocial, $nomeFantasia, $cnpjCpf, $emailContato, $telefone, $tipoCobranca, $valorHora, $valorMensalidade, $franquiaHoras, $reembolso, $ativo, $id]
+        );
+    });
+} catch (PDOException $e) {
+    if ($e->getCode() === '23000') throw new HttpError(409, 'Já existe um cliente cadastrado com esse CNPJ/CPF.');
+    throw $e;
+}
 respond(['id' => $id]);

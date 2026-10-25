@@ -9,7 +9,8 @@ if (!in_array($tipo, $permitidos, true)) throw new HttpError(422, 'Cadastro invÃ
 $client = tenant($user, $_GET['cliente_id'] ?? null);
 
 if ($tipo === 'tipos_documento') {
-    respond(query('SELECT id,nome FROM tipos_documento WHERE cliente_id=? ORDER BY nome LIMIT 500', [$client])->fetchAll());
+    // cliente_id NULL = tipo de documento global, visÃ­vel para todos os clientes.
+    respond(query('SELECT id,nome FROM tipos_documento WHERE cliente_id=? OR cliente_id IS NULL ORDER BY nome LIMIT 500', [$client])->fetchAll());
 }
 if ($tipo === 'fornecedores') {
     respond(query('SELECT id,razao_social AS nome FROM fornecedores WHERE cliente_id=? ORDER BY razao_social LIMIT 500', [$client])->fetchAll());
