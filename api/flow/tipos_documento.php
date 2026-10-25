@@ -6,13 +6,14 @@ $data = in_array($method, ['GET', 'DELETE'], true) ? $_GET : input();
 $client = tenant($user, $data['cliente_id'] ?? null);
 
 if ($method === 'GET') {
-    respond(query('SELECT id,nome FROM tipos_documento WHERE cliente_id=? ORDER BY nome LIMIT 500', [$client])->fetchAll());
+    // cliente_id NULL = tipo de documento global, visível para todos os clientes.
+    respond(query('SELECT id,nome,cliente_id FROM tipos_documento WHERE cliente_id=? OR cliente_id IS NULL ORDER BY nome LIMIT 500', [$client])->fetchAll());
 }
 if (!in_array($user['perfil'], ['bpo_adm', 'bpo_operador'], true)) throw new HttpError(403, 'Perfil sem permissão.');
 
 if ($method === 'DELETE') {
     $id = positiveId($data['id'] ?? null);
-    if (!query('SELECT id FROM tipos_documento WHERE id=? AND cliente_id=?', [$id, $client])->fetch()) throw new HttpError(404, 'Tipo de documento não encontrado.');
+    if (!query('SELECT id FROM tipos_documento WHERE id=? AND (cliente_id=? OR cliente_id IS NULL)', [$id, $client])->fetch()) throw new HttpError(404, 'Tipo de documento não encontrado.');
     try {
         query('DELETE FROM tipos_documento WHERE id=?', [$id]);
     } catch (PDOException $e) {
@@ -34,6 +35,6 @@ if ($method === 'POST') {
 }
 
 $id = positiveId($data['id'] ?? null);
-if (!query('SELECT id FROM tipos_documento WHERE id=? AND cliente_id=?', [$id, $client])->fetch()) throw new HttpError(404, 'Tipo de documento não encontrado.');
+if (!query('SELECT id FROM tipos_documento WHERE id=? AND (cliente_id=? OR cliente_id IS NULL)', [$id, $client])->fetch()) throw new HttpError(404, 'Tipo de documento não encontrado.');
 query('UPDATE tipos_documento SET nome=? WHERE id=?', [$nome, $id]);
 respond(['id' => $id]);

@@ -87,7 +87,7 @@ function ClientesTab() {
             <input value={form.nomeFantasia} onChange={(e) => setForm({ ...form, nomeFantasia: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-medium text-brand-navy">CNPJ/CPF
-            <input value={form.cnpjCpf} onChange={(e) => setForm({ ...form, cnpjCpf: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <input required value={form.cnpjCpf} onChange={(e) => setForm({ ...form, cnpjCpf: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-medium text-brand-navy">E-mail
             <input type="email" value={form.emailContato} onChange={(e) => setForm({ ...form, emailContato: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
