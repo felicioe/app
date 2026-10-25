@@ -13,6 +13,7 @@ $date=validDate(required($data,'data')); $start=required($data,'hora_inicio'); $
 foreach ([$start,$end] as $time) if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D',$time)) throw new HttpError(422,'Horário inválido. Use HH:mm.');
 $minutes=(int)((strtotime($date.' '.$end)-strtotime($date.' '.$start))/60);
 if ($minutes<=0) throw new HttpError(422,'A hora final deve ser posterior à inicial no mesmo dia.');
+if ($minutes<30) $minutes=30; // não há cobrança de apontamento abaixo de 30 minutos
 $id=transaction(function() use ($data,$client,$user,$date,$start,$end,$minutes) {
     query('SELECT id FROM clientes WHERE id=? FOR UPDATE',[$client]);
     if (query('SELECT id FROM faturas_honorarios WHERE cliente_id=? AND ? BETWEEN periodo_inicio AND periodo_fim',[$client,$date])->fetch()) throw new HttpError(409,'Período já encerrado.');

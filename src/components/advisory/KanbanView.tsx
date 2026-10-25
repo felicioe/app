@@ -13,15 +13,31 @@ const COLUNAS = [
 ] as const;
 
 const FORM_TAREFA_INICIAL = { projeto_id: '', titulo: '', descricao: '', prazo: '' };
+const CHAVE_CRONOMETRO = 'thera_cronometro_ativo';
+
+interface CronometroAtivo { tarefaId: number; inicioMs: number }
+
+function lerCronometroSalvo(): CronometroAtivo | null {
+  try {
+    const bruto = localStorage.getItem(CHAVE_CRONOMETRO);
+    if (!bruto) return null;
+    const valor = JSON.parse(bruto);
+    if (typeof valor?.tarefaId === 'number' && typeof valor?.inicioMs === 'number') return valor;
+  } catch { /* ignora armazenamento indisponível ou corrompido */ }
+  return null;
+}
 
 export const KanbanView: React.FC<KanbanViewProps> = ({ cliente }) => {
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTimerId, setActiveTimerId] = useState<number | null>(null);
-  const [startedAt, setStartedAt] = useState<Date | null>(null);
-  const [seconds, setSeconds] = useState(0);
+  const [activeTimerId, setActiveTimerId] = useState<number | null>(() => lerCronometroSalvo()?.tarefaId ?? null);
+  const [inicioMs, setInicioMs] = useState<number | null>(() => lerCronometroSalvo()?.inicioMs ?? null);
+  const [seconds, setSeconds] = useState(() => {
+    const salvo = lerCronometroSalvo();
+    return salvo ? Math.floor((Date.now() - salvo.inicioMs) / 1000) : 0;
+  });
   const [formTarefa, setFormTarefa] = useState(FORM_TAREFA_INICIAL);
   const [enviandoTarefa, setEnviandoTarefa] = useState(false);
   const [novoProjeto, setNovoProjeto] = useState('');
@@ -44,21 +60,31 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ cliente }) => {
   useEffect(load, [cliente.id]);
 
   useEffect(() => {
-    if (activeTimerId === null) return;
-    const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
+    if (activeTimerId === null || inicioMs === null) return;
+    const atualizar = () => setSeconds(Math.floor((Date.now() - inicioMs) / 1000));
+    atualizar();
+    const timer = window.setInterval(atualizar, 1000);
     return () => window.clearInterval(timer);
-  }, [activeTimerId]);
+  }, [activeTimerId, inicioMs]);
 
   const formatTimer = (value: number) => `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor((value % 3600) / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  const formatHoraMinuto = (data: Date) => `${String(data.getHours()).padStart(2, '0')}:${String(data.getMinutes()).padStart(2, '0')}`;
 
   const toggleTimer = async (task: Tarefa) => {
-    if (activeTimerId === task.id && startedAt) {
-      const end = new Date();
+    if (activeTimerId === task.id && inicioMs !== null) {
+      const inicio = new Date(inicioMs);
+      const fim = new Date();
       try {
-        await advisoryService.apontar({ cliente_id: cliente.id, tarefa_id: task.id, data: startedAt.toISOString().slice(0, 10), hora_inicio: startedAt.toTimeString().slice(0, 8), hora_fim: end.toTimeString().slice(0, 8) });
-        setActiveTimerId(null); setStartedAt(null); setSeconds(0);
-      } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o apontamento.'); }
-    } else { setActiveTimerId(task.id); setStartedAt(new Date()); setSeconds(0); }
+        await advisoryService.apontar({ cliente_id: cliente.id, tarefa_id: task.id, data: `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}-${String(inicio.getDate()).padStart(2, '0')}`, hora_inicio: formatHoraMinuto(inicio), hora_fim: formatHoraMinuto(fim) });
+        localStorage.removeItem(CHAVE_CRONOMETRO);
+        setActiveTimerId(null); setInicioMs(null); setSeconds(0);
+        load();
+      } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o apontamento. O cronômetro continua rodando — tente finalizar novamente.'); }
+    } else {
+      const agora = Date.now();
+      try { localStorage.setItem(CHAVE_CRONOMETRO, JSON.stringify({ tarefaId: task.id, inicioMs: agora })); } catch { /* armazenamento indisponível, segue só em memória */ }
+      setActiveTimerId(task.id); setInicioMs(agora); setSeconds(0);
+    }
   };
 
   const criarProjeto = async (event: React.FormEvent) => {

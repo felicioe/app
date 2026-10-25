@@ -8,6 +8,7 @@ import { FilaPagamentosView } from './components/flow/FilaPagamentosView';
 import { PlanoContasView } from './components/flow/PlanoContasView';
 import { WorkspaceView } from './components/flow/WorkspaceView';
 import { AdminSiteView } from './components/admin/AdminSiteView';
+import { AdminCadastrosView } from './components/admin/AdminCadastrosView';
 import { CLIENTES_MOCK, Cliente } from './mock/mockData';
 import { authService } from './services/authService';
 import { clienteService } from './services/clienteService';
@@ -138,20 +139,21 @@ function LoginPage({ label, onLogin }: { label: string; onLogin: (user: Usuario)
   return <main className="flex min-h-screen items-center justify-center bg-brand-cream-light px-6"><form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-brand-navy/10 bg-white p-8 shadow-xl"><a href="/"><img src="/brand/logo-horizontal.png" alt="Thera Financial" className="h-8 w-auto" /></a><div className="mt-8 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy text-white"><LockKeyhole size={22} /></div><h1 className="mt-6 text-2xl font-bold text-brand-navy">Entrar no {label}</h1><p className="mt-2 text-sm text-brand-slate">Use seu acesso Thera Financial para continuar.</p><label className="mt-6 block text-sm font-medium text-brand-navy">E-mail<input required type="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-brand-gold" /></label><label className="mt-4 block text-sm font-medium text-brand-navy">Senha<input required type="password" value={senha} onChange={event => setSenha(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-brand-gold" /></label><div className="mt-2 text-right"><a href="mailto:felicioe@gmail.com?subject=Redefinição%20de%20acesso%20Thera" className="text-xs font-semibold text-brand-gold-dark hover:underline">Esqueci minha senha</a></div>{error && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-brand-navy px-4 py-3 font-semibold text-white transition hover:bg-brand-navy-light disabled:opacity-60">{loading && <LoaderCircle className="animate-spin" size={17} />}Entrar</button><p className="mt-5 text-center text-xs text-brand-slate"><a href="/privacidade" className="hover:text-brand-navy hover:underline">Privacidade</a><span className="mx-2">·</span><a href="/termos" className="hover:text-brand-navy hover:underline">Termos de uso</a></p></form></main>;
 }
 
-function AdminSiteRoute() {
+function AdminProtectedRoute({ render }: { render: () => React.ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [checking, setChecking] = useState(true);
   useEffect(() => { authService.current().then(setUser).catch(() => setUser(null)).finally(() => setChecking(false)); }, []);
   if (checking) return <div className="flex min-h-screen items-center justify-center text-slate-500"><LoaderCircle className="animate-spin" /></div>;
   if (!user) return <LoginPage label="Painel Administrativo" onLogin={setUser} />;
   if (user.perfil !== 'bpo_adm') return <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 text-center text-slate-600"><p className="text-sm">Acesso restrito ao administrador BPO.</p></div>;
-  return <AdminSiteView />;
+  return <>{render()}</>;
 }
 
 export function App() {
   if (window.location.pathname === '/privacidade') return <LegalPage kind="privacy" />;
   if (window.location.pathname === '/termos') return <LegalPage kind="terms" />;
-  if (window.location.pathname === '/admin/site') return <AdminSiteRoute />;
+  if (window.location.pathname === '/admin/site') return <AdminProtectedRoute render={() => <AdminSiteView />} />;
+  if (window.location.pathname === '/admin/cadastros') return <AdminProtectedRoute render={() => <AdminCadastrosView />} />;
   const module: Module | null = window.location.pathname.startsWith('/workspace') ? 'workspace' : window.location.pathname.startsWith('/advisory') ? 'advisory' : null;
   const [user, setUser] = useState<Usuario | null>(null); const [checking, setChecking] = useState(module !== null); const [activeView, setActiveView] = useState(module === 'advisory' ? 'kanban' : 'entrada_docs');
   const [clientes, setClientes] = useState<Cliente[]>([]); const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null); const [loadingClientes, setLoadingClientes] = useState(false); const [usandoMock, setUsandoMock] = useState(false);
