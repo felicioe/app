@@ -45,11 +45,13 @@ try:
     assert status == 405
     status, _, _ = request('auth/login.php', 'POST', body=b'{invalid')
     assert status == 400
-    for path in ['advisory/timesheet.php', 'advisory/faturamento.php', 'advisory/kanban.php', 'advisory/despesas.php', 'flow/documentos.php', 'flow/alcadas.php', 'flow/anexo.php', 'flow/notificacoes.php', 'flow/cadastros.php?tipo=fornecedores', 'clientes.php']:
+    for path in ['advisory/timesheet.php', 'advisory/faturamento.php', 'advisory/kanban.php', 'advisory/despesas.php', 'advisory/tarefa_anexos.php?tarefa_id=1', 'advisory/tarefa_anexo.php?anexo_id=1', 'flow/documentos.php', 'flow/alcadas.php', 'flow/anexo.php', 'flow/notificacoes.php', 'flow/cadastros.php?tipo=fornecedores', 'clientes.php']:
         status, _, _ = request(path)
         assert status == 401, (path, status)
     status, _, _ = request('institucional.php', 'POST', body=b'{}')
     assert status == 401, ('institucional.php POST', status)
+    status, _, _ = request('advisory/projetos.php', 'POST', body=b'{}')
+    assert status == 401, ('advisory/projetos.php POST', status)
     print('Smoke HTTP passou: autenticação, CORS, métodos e JSON inválido.')
 finally:
     process.terminate()
