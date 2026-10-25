@@ -38,7 +38,7 @@ export function WorkspaceView({ cliente }: { cliente: Cliente }) {
 
   const loadCadastros = () => {
     flowService.fornecedores(cliente.id).then(setFornecedores).catch(() => setFornecedores([]));
-    flowService.tiposDocumento().then(setTiposDocumento).catch(() => setTiposDocumento([]));
+    flowService.tiposDocumento(cliente.id).then(setTiposDocumento).catch(() => setTiposDocumento([]));
     flowService.planoContas(cliente.id).then(setPlanoContas).catch(() => setPlanoContas([]));
     flowService.centrosCusto(cliente.id).then(setCentrosCusto).catch(() => setCentrosCusto([]));
   };

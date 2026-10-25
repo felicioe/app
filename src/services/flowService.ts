@@ -8,7 +8,7 @@ export type TipoCadastro = 'fornecedores' | 'tipos_documento' | 'plano_contas' |
 export const flowService = {
   documentos: (cliente_id: number, filtros: { inicio?: string; fim?: string; status?: string } = {}) => apiClient<Documento[]>(`flow/documentos.php?${params({ cliente_id, ...filtros })}`),
   fornecedores: (cliente_id: number) => apiClient<CadastroNome[]>(`flow/cadastros.php?${params({ tipo: 'fornecedores', cliente_id })}`),
-  tiposDocumento: () => apiClient<CadastroNome[]>(`flow/cadastros.php?${params({ tipo: 'tipos_documento' })}`),
+  tiposDocumento: (cliente_id: number) => apiClient<CadastroNome[]>(`flow/cadastros.php?${params({ tipo: 'tipos_documento', cliente_id })}`),
   planoContas: (cliente_id: number) => apiClient<CadastroCodigo[]>(`flow/cadastros.php?${params({ tipo: 'plano_contas', cliente_id })}`),
   planoContasCompleto: (cliente_id: number) => apiClient<CadastroCodigo[]>(`flow/cadastros.php?${params({ tipo: 'plano_contas', cliente_id, todos: 1 })}`),
   centrosCusto: (cliente_id: number) => apiClient<CadastroCodigo[]>(`flow/cadastros.php?${params({ tipo: 'centros_custo', cliente_id })}`),
