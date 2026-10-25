@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS conteudo_site (
   chave VARCHAR(80) PRIMARY KEY,
   valor TEXT NOT NULL,
   atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  atualizado_por_usuario_id BIGINT UNSIGNED NULL,
+  atualizado_por_usuario_id INT(11) NULL,
   CONSTRAINT fk_conteudo_site_usuario FOREIGN KEY (atualizado_por_usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
