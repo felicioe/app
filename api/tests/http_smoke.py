@@ -52,6 +52,13 @@ try:
     assert status == 401, ('institucional.php POST', status)
     status, _, _ = request('advisory/projetos.php', 'POST', body=b'{}')
     assert status == 401, ('advisory/projetos.php POST', status)
+    for path, method in [
+        ('clientes.php', 'POST'), ('clientes.php', 'PATCH'),
+        ('flow/fornecedores.php?cliente_id=1', 'POST'), ('flow/fornecedores.php?cliente_id=1', 'PATCH'), ('flow/fornecedores.php?id=1&cliente_id=1', 'DELETE'),
+        ('flow/tipos_documento.php?cliente_id=1', 'POST'), ('flow/tipos_documento.php?cliente_id=1', 'PATCH'), ('flow/tipos_documento.php?id=1&cliente_id=1', 'DELETE'),
+    ]:
+        status, _, _ = request(path, method, body=b'{}' if method in ('POST', 'PATCH') else None)
+        assert status == 401, (path, method, status)
     print('Smoke HTTP passou: autenticação, CORS, métodos e JSON inválido.')
 finally:
     process.terminate()

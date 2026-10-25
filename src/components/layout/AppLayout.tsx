@@ -173,7 +173,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </nav>
 
         {isAdmin && sidebarOpen && (
-          <div className="px-3 pb-2">
+          <div className="space-y-1.5 px-3 pb-2">
+            <a href="/admin/cadastros" className="block w-full rounded-lg border border-white/15 px-3 py-2 text-center text-[11px] font-semibold text-slate-300 hover:bg-white/5">
+              Cadastros (clientes, fornecedores...)
+            </a>
             <a href="/admin/site" className="block w-full rounded-lg border border-white/15 px-3 py-2 text-center text-[11px] font-semibold text-slate-300 hover:bg-white/5">
               Editar site institucional
             </a>
