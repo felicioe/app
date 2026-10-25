@@ -48,6 +48,8 @@ try:
     for path in ['advisory/timesheet.php', 'advisory/faturamento.php', 'advisory/kanban.php', 'advisory/despesas.php', 'flow/documentos.php', 'flow/alcadas.php', 'flow/anexo.php', 'flow/notificacoes.php', 'flow/cadastros.php?tipo=fornecedores', 'clientes.php']:
         status, _, _ = request(path)
         assert status == 401, (path, status)
+    status, _, _ = request('institucional.php', 'POST', body=b'{}')
+    assert status == 401, ('institucional.php POST', status)
     print('Smoke HTTP passou: autenticação, CORS, métodos e JSON inválido.')
 finally:
     process.terminate()

@@ -24,6 +24,7 @@ interface AppLayoutProps {
   clienteSelecionado: Cliente;
   setClienteSelecionado: (cliente: Cliente) => void;
   avisoClientesMock?: boolean;
+  isAdmin?: boolean;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -36,6 +37,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   clienteSelecionado,
   setClienteSelecionado,
   avisoClientesMock,
+  isAdmin,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -173,6 +175,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           })}
         </nav>
 
+        {isAdmin && sidebarOpen && (
+          <div className="px-3 pb-2">
+            <a href="/admin/site" className="block w-full rounded-lg border border-slate-700 px-3 py-2 text-center text-[11px] font-semibold text-slate-300 hover:bg-slate-800">
+              Editar site institucional
+            </a>
+          </div>
+        )}
         <div className="p-3 border-t border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-300">
