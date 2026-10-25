@@ -7,17 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: {
-          900: '#0F172A',
-          800: '#1E293B',
-        },
-        advisory: {
-          DEFAULT: '#2563EB',
-          hover: '#1D4ED8',
-        },
-        flow: {
-          DEFAULT: '#059669',
-          hover: '#047857',
+        // Paleta extraída da identidade visual oficial (logo Thera Financial).
+        brand: {
+          navy: '#122641',
+          'navy-light': '#1C3759',
+          slate: '#575E6B',
+          cream: '#D8D0C8',
+          'cream-light': '#F4F1EC',
+          gold: '#B08D4F',
+          'gold-dark': '#8E6F3A',
         },
       },
     },

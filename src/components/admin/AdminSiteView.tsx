@@ -51,11 +51,11 @@ export function AdminSiteView() {
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <a href="/" className="text-sm font-semibold text-blue-600">← Ver site institucional</a>
+            <a href="/" className="text-sm font-semibold text-brand-gold-dark">← Ver site institucional</a>
             <h1 className="mt-2 text-2xl font-bold text-slate-900">Editar site institucional</h1>
             <p className="mt-1 text-sm text-slate-500">Alterações aparecem imediatamente na página pública ao salvar.</p>
           </div>
-          <button onClick={() => void salvar()} disabled={salvando} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+          <button onClick={() => void salvar()} disabled={salvando} className="inline-flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-light disabled:opacity-60">
             {salvando ? <LoaderCircle size={16} className="animate-spin" /> : <Save size={16} />} Salvar e publicar
           </button>
         </div>
